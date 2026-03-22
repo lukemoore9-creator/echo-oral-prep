@@ -1,44 +1,36 @@
 import Link from "next/link";
-import { Anchor, Mic, Shield, Check, Compass, Waves } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from "@/components/ui/card";
+  Anchor,
+  Compass,
+  Ship,
+  Sailboat,
+  Check,
+} from "lucide-react";
 
-const ticketCategories = [
+const courses = [
   {
-    label: "Commercial",
-    tickets: [
-      { name: "OOW Unlimited", icon: "⚓" },
-      { name: "OOW Near Coastal", icon: "⚓" },
-      { name: "Master <200GT", icon: "🚢" },
-      { name: "Master <500GT", icon: "🛳️" },
-      { name: "Master <3000GT", icon: "⛴️" },
-      { name: "Master Unlimited", icon: "🚀" },
-    ],
+    name: "Master Unlimited",
+    subtitle: "Master Mariner — Unlimited",
+    slug: "master-unlimited",
+    Icon: Anchor,
   },
   {
-    label: "Yachting",
-    tickets: [
-      { name: "Yacht Master Offshore", icon: "⛵" },
-      { name: "Yacht Master Ocean", icon: "🌊" },
-      { name: "Mate <200GT Yacht", icon: "🛥️" },
-      { name: "Master <200GT Yacht", icon: "🛥️" },
-      { name: "Master <500GT Yacht", icon: "🛥️" },
-      { name: "Master <3000GT Yacht", icon: "🛥️" },
-    ],
+    name: "OOW Unlimited",
+    subtitle: "Officer of the Watch — Unlimited",
+    slug: "oow-unlimited",
+    Icon: Compass,
   },
   {
-    label: "Engineering",
-    tickets: [
-      { name: "Engineer OOW", icon: "⚙️" },
-      { name: "ETO", icon: "⚡" },
-    ],
+    name: "Yacht Master Ocean",
+    subtitle: "RYA/MCA Yacht Master — Ocean",
+    slug: "ym-ocean",
+    Icon: Ship,
+  },
+  {
+    name: "Yacht Master Offshore",
+    subtitle: "RYA/MCA Yacht Master — Offshore",
+    slug: "ym-offshore",
+    Icon: Sailboat,
   },
 ];
 
@@ -46,272 +38,199 @@ const pricingPlans = [
   {
     name: "Free",
     price: "$0",
-    period: "",
-    description: "Try it out with limited sessions",
-    features: [
-      "3 practice sessions per month",
-      "Basic feedback",
-      "OOW Unlimited only",
-    ],
-    cta: "Get Started",
+    features: ["2 sessions/month", "10 min each"],
+    cta: "Get started",
     highlighted: false,
   },
   {
     name: "Basic",
-    price: "$19",
-    period: "/mo",
-    description: "For serious exam candidates",
-    features: [
-      "30 sessions per month",
-      "All ticket types",
-      "Detailed performance reports",
-      "Session history",
-    ],
-    cta: "Start Basic",
+    price: "$19/mo",
+    features: ["Unlimited sessions", "All ticket types", "Session history"],
+    cta: "Subscribe",
     highlighted: true,
   },
   {
     name: "Pro",
-    price: "$39",
-    period: "/mo",
-    description: "Unlimited practice, total confidence",
+    price: "$39/mo",
     features: [
-      "Unlimited sessions",
-      "All ticket types",
-      "Advanced analytics & weak areas",
-      "Priority voice quality",
-      "Mock exam mode",
+      "Everything in Basic",
+      "Analytics",
+      "Weak-spot targeting",
+      "Exam readiness score",
     ],
-    cta: "Go Pro",
+    cta: "Subscribe",
     highlighted: false,
   },
 ];
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#FFFFFF]">
       {/* ── Sticky Navigation ── */}
-      <nav className="sticky top-0 z-50 border-b border-gold/10 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Anchor className="h-6 w-6 text-gold" />
-            <span className="font-heading text-xl font-bold tracking-tight">
-              Helm AI
-            </span>
+      <nav className="sticky top-0 z-50 border-b border-[#E5E7EB] bg-[#FFFFFF]">
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
+          <Link href="/" className="font-bold text-xl text-[#111111]">
+            Helm AI
           </Link>
-          <div className="hidden items-center gap-8 sm:flex">
-            <Link
-              href="#tickets"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Exams
-            </Link>
-            <Link
-              href="#pricing"
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Pricing
-            </Link>
-          </div>
-          <Button
-            render={<Link href="/select" />}
-            size="sm"
-            className="bg-gold text-navy font-semibold hover:bg-gold/90"
+          <Link
+            href="/select"
+            className="inline-flex items-center justify-center bg-[#2563EB] text-white rounded-lg px-6 py-3 text-[15px] font-medium hover:bg-[#1D4ED8] transition-colors"
           >
             Start Practicing
-          </Button>
+          </Link>
         </div>
       </nav>
 
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-chart-pattern">
-        <div className="mx-auto max-w-4xl px-6 pb-24 pt-28 text-center lg:px-8 lg:pb-32 lg:pt-36">
-          {/* Decorative compass */}
-          <div className="mx-auto mb-8 flex h-16 w-16 items-center justify-center rounded-full border border-gold/20 bg-surface">
-            <Compass className="h-8 w-8 text-gold" />
-          </div>
-
-          <h1 className="font-heading text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-            Your AI Examiner.{" "}
-            <span className="text-gold">Available 24/7.</span>
+      <section className="bg-[#FFFFFF]">
+        <div className="mx-auto max-w-[1200px] px-6 py-24">
+          <h1 className="text-5xl font-bold text-[#111111] leading-tight tracking-tight">
+            Prepare for your oral exam with AI
           </h1>
-
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Practice your MCA oral exam with an AI examiner that adapts to you.
-            Voice-to-voice. Anytime.
+          <p className="text-lg text-[#6B7280] mt-6 max-w-xl">
+            One-to-one exam prep with an AI examiner that adapts to your level.
+            Voice-to-voice. Available 24/7.
           </p>
-
-          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Button
-              render={<Link href="/select" />}
-              size="lg"
-              className="h-12 px-8 text-base font-semibold bg-gold text-navy hover:bg-gold/90 shadow-lg shadow-gold/20"
+          <div className="mt-10 flex gap-4">
+            <Link
+              href="/select"
+              className="inline-flex items-center justify-center bg-[#2563EB] text-white rounded-lg px-6 py-3 text-[15px] font-medium hover:bg-[#1D4ED8] transition-colors"
             >
-              <Mic className="mr-2 h-5 w-5" />
-              Start Practicing
-            </Button>
-          </div>
-
-          {/* Trust indicators */}
-          <div className="mt-14 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-sm text-muted-foreground">
-            <span className="flex items-center gap-2">
-              <Shield className="h-4 w-4 text-gold/70" />
-              MCA syllabus aligned
-            </span>
-            <span className="flex items-center gap-2">
-              <Mic className="h-4 w-4 text-gold/70" />
-              Real voice conversation
-            </span>
-            <span className="flex items-center gap-2">
-              <Waves className="h-4 w-4 text-gold/70" />
-              14 ticket types covered
-            </span>
+              Start practicing
+            </Link>
+            <a
+              href="#courses"
+              className="inline-flex items-center justify-center bg-white border border-[#E5E7EB] text-[#111111] rounded-lg px-6 py-3 text-[15px] font-medium hover:border-[#D1D5DB] transition-colors"
+            >
+              View courses
+            </a>
           </div>
         </div>
-
-        {/* Gradient fade at bottom */}
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-background to-transparent" />
       </section>
 
-      {/* ── Ticket Types Grid ── */}
-      <section id="tickets" className="py-20 lg:py-28">
-        <div className="mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              Every Ticket. Every Level.
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-              From OOW to Master Unlimited — choose your certificate and start
-              practising with exam-relevant questions.
-            </p>
-          </div>
-
-          <div className="mt-14 space-y-10">
-            {ticketCategories.map((category) => (
-              <div key={category.label}>
-                <h3 className="mb-4 font-heading text-sm font-semibold uppercase tracking-widest text-gold/80">
-                  {category.label}
-                </h3>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
-                  {category.tickets.map((ticket) => (
-                    <div
-                      key={ticket.name}
-                      className="flex items-center gap-3 rounded-lg border border-white/5 bg-surface/60 px-4 py-3 text-sm"
-                    >
-                      <span className="text-lg">{ticket.icon}</span>
-                      <span className="font-medium text-foreground/90">
-                        {ticket.name}
-                      </span>
-                    </div>
-                  ))}
+      {/* ── Courses ── */}
+      <section id="courses" className="bg-[#F7F8FA]">
+        <div className="mx-auto max-w-[1200px] px-6 py-20">
+          <h2 className="text-3xl font-bold text-[#111111]">
+            Select your exam
+          </h2>
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {courses.map((course) => (
+              <Link
+                key={course.slug}
+                href={`/session?ticket=${course.slug}`}
+                className="group bg-white border border-[#E5E7EB] rounded-xl p-6 transition-all hover:shadow-md"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F7F8FA]">
+                  <course.Icon className="h-6 w-6 text-[#6B7280]" />
                 </div>
-              </div>
+                <h3 className="mt-4 font-bold text-[#111111]">
+                  {course.name}
+                </h3>
+                <p className="mt-1 text-sm text-[#6B7280]">
+                  {course.subtitle}
+                </p>
+                <span className="mt-4 inline-block text-sm font-medium text-[#2563EB] group-hover:underline">
+                  Start exam prep &rarr;
+                </span>
+              </Link>
             ))}
           </div>
         </div>
       </section>
 
       {/* ── Pricing ── */}
-      <section id="pricing" className="border-t border-gold/10 py-20 lg:py-28">
-        <div className="mx-auto max-w-5xl px-6 lg:px-8">
-          <div className="text-center">
-            <h2 className="font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              Simple Pricing
-            </h2>
-            <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
-              Start free. Upgrade when you&#39;re ready to get serious about
-              your exam.
-            </p>
-          </div>
-
-          <div className="mt-14 grid gap-6 md:grid-cols-3">
+      <section id="pricing" className="bg-[#FFFFFF]">
+        <div className="mx-auto max-w-[1200px] px-6 py-20">
+          <h2 className="text-3xl font-bold text-[#111111]">Pricing</h2>
+          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6">
             {pricingPlans.map((plan) => (
-              <Card
+              <div
                 key={plan.name}
-                className={`relative flex flex-col ${
+                className={`relative bg-white rounded-xl p-6 flex flex-col ${
                   plan.highlighted
-                    ? "border-gold/40 ring-1 ring-gold/20 shadow-lg shadow-gold/5"
-                    : "border-white/5"
+                    ? "border-2 border-[#2563EB]"
+                    : "border border-[#E5E7EB]"
                 }`}
               >
                 {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gold px-3 py-0.5 text-xs font-bold text-navy">
-                    Most Popular
-                  </div>
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#2563EB] text-white text-xs px-3 py-1 rounded-full font-medium">
+                    Popular
+                  </span>
                 )}
-                <CardHeader>
-                  <CardDescription className="text-muted-foreground">
-                    {plan.description}
-                  </CardDescription>
-                  <CardTitle className="mt-1 flex items-baseline gap-1">
-                    <span className="font-heading text-3xl font-extrabold">
-                      {plan.price}
-                    </span>
-                    {plan.period && (
-                      <span className="text-sm font-normal text-muted-foreground">
-                        {plan.period}
-                      </span>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <ul className="space-y-2.5 text-sm">
-                    {plan.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-2 text-foreground/80"
-                      >
-                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter className="border-t-0 bg-transparent pt-0">
-                  <Button
-                    render={<Link href="/select" />}
-                    className={`w-full ${
-                      plan.highlighted
-                        ? "bg-gold text-navy font-semibold hover:bg-gold/90"
-                        : "bg-surface text-foreground hover:bg-surface/80 border border-white/10"
-                    }`}
-                  >
-                    {plan.cta}
-                  </Button>
-                </CardFooter>
-              </Card>
+                <h3 className="text-lg font-bold text-[#111111]">
+                  {plan.name}
+                </h3>
+                <p className="mt-2 text-3xl font-bold text-[#111111]">
+                  {plan.price}
+                </p>
+                <ul className="mt-6 space-y-3 flex-1">
+                  {plan.features.map((feature) => (
+                    <li
+                      key={feature}
+                      className="flex items-center gap-2 text-sm text-[#6B7280]"
+                    >
+                      <Check className="h-4 w-4 shrink-0 text-[#2563EB]" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  className={`mt-8 w-full rounded-lg px-6 py-3 text-[15px] font-medium transition-colors ${
+                    plan.highlighted
+                      ? "bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
+                      : "bg-white border border-[#E5E7EB] text-[#111111] hover:border-[#D1D5DB]"
+                  }`}
+                >
+                  {plan.cta}
+                </button>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* ── Promo Banner ── */}
+      <section className="bg-[#F7F8FA]">
+        <div className="mx-auto max-w-[1200px] px-6 py-12">
+          <p className="text-center text-[#6B7280] text-[15px]">
+            Download 4 free courses — Master Unlimited, OOW Unlimited, Yacht
+            Master Offshore, Yacht Master Ocean. Head to{" "}
+            <a
+              href="https://helmaiprep.com"
+              className="text-[#2563EB] font-medium hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              helmaiprep.com
+            </a>
+          </p>
+        </div>
+      </section>
+
       {/* ── Footer ── */}
-      <footer className="border-t border-gold/10 py-12">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-            <div className="flex items-center gap-2">
-              <Anchor className="h-5 w-5 text-gold/60" />
-              <span className="font-heading text-sm font-semibold text-foreground/60">
-                Helm AI
-              </span>
-            </div>
-            <div className="flex gap-6 text-sm text-muted-foreground">
-              <Link href="#" className="transition-colors hover:text-foreground">
-                Privacy
-              </Link>
-              <Link href="#" className="transition-colors hover:text-foreground">
-                Terms
-              </Link>
-              <Link href="#" className="transition-colors hover:text-foreground">
-                Contact
-              </Link>
-              <Link href="#" className="transition-colors hover:text-foreground">
-                FAQ
-              </Link>
-            </div>
-            <p className="text-xs text-muted-foreground/60">
-              &copy; {new Date().getFullYear()} Helm AI. All rights reserved.
-            </p>
+      <footer className="border-t border-[#E5E7EB]">
+        <div className="mx-auto max-w-[1200px] px-6 py-8 flex items-center justify-between">
+          <span className="font-bold text-[#111111]">Helm AI</span>
+          <div className="flex gap-6">
+            <Link
+              href="#"
+              className="text-sm text-[#6B7280] hover:text-[#111111] transition-colors"
+            >
+              About
+            </Link>
+            <Link
+              href="#"
+              className="text-sm text-[#6B7280] hover:text-[#111111] transition-colors"
+            >
+              Contact
+            </Link>
+            <Link
+              href="#"
+              className="text-sm text-[#6B7280] hover:text-[#111111] transition-colors"
+            >
+              Terms
+            </Link>
           </div>
         </div>
       </footer>

@@ -1,55 +1,28 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-heading",
-  subsets: ["latin"],
-  display: "swap",
-});
-
 const inter = Inter({
-  variable: "--font-sans",
   subsets: ["latin"],
-  display: "swap",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  display: "swap",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-inter",
 });
 
 export const metadata: Metadata = {
-  title: "Helm AI — Your AI Oral Examiner",
+  title: "Helm AI — Oral Exam Prep for Maritime Officers",
   description:
-    "Practice for your maritime oral exams with an AI examiner. OOW, Master, Yacht Master and more. Available 24/7.",
-  keywords: [
-    "maritime",
-    "oral exam",
-    "MCA",
-    "OOW",
-    "Master Mariner",
-    "Yacht Master",
-    "exam preparation",
-    "AI tutor",
-  ],
+    "Prepare for your MCA oral exam with an AI examiner. Voice-to-voice exam practice, available 24/7.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html
-      lang="en"
-      className={`${plusJakarta.variable} ${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+    <html lang="en">
+      <body className={`${inter.variable} font-sans antialiased`}>
         {children}
-        <Toaster />
       </body>
     </html>
   );
