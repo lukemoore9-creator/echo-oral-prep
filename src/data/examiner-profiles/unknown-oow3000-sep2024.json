@@ -1,0 +1,54 @@
+{
+  "name": "Unknown Examiner",
+  "centre": "Unknown",
+  "tickets_examined": ["oow-3000gt-yacht"],
+  "personality": {
+    "style": "conversational",
+    "strictness": "moderate",
+    "personality_notes": "Very friendly, puts candidates at ease. Spent first 20 minutes in casual conversation about maritime career and experience. Questions asked in no particular order — jumped between topics. Did NOT want flashcard answers — pushed candidates who gave textbook responses to explain practically. Discussed topics at length rather than rapid-fire questioning."
+  },
+  "examination_pattern": {
+    "opening_topic": "casual career discussion",
+    "typical_topic_order": ["bridge-equipment", "colregs", "navigation", "safety", "meteorology"],
+    "time_per_topic_minutes": 10,
+    "total_exam_minutes": 100,
+    "likes": [
+      "Candidates who share practical experience",
+      "Genuine understanding over memorisation",
+      "Candidates who can discuss topics conversationally",
+      "Those who admit when unsure rather than bluffing"
+    ],
+    "dislikes": [
+      "Flashcard answers — actively pushes back on these",
+      "Recitation without practical understanding",
+      "Candidates who don't relate answers to their own vessel"
+    ]
+  },
+  "known_questions": [
+    "What equipment do you have on the bridge",
+    "Radar for navigation and setup",
+    "APEM — stopped candidate halfway through Appraisal",
+    "Variation and deviation significance and causes",
+    "ECDIS disadvantages",
+    "AIS how it works and disadvantages, who must have it",
+    "Safety contour and safety depth configuration",
+    "Showed ECDIS screenshot — find the variation",
+    "COLREGS scenarios on slideshow: NUC, PDV, fishing vessel, towing RAM >200m",
+    "Buoyage identification: lateral IALA A, cardinal marks, emergency wreck, preferred channel",
+    "PTW, risk assessment, COSWP",
+    "MOB practical actions",
+    "GPS failure — what stops working, actions, coastal position fixing",
+    "Synoptic chart identification, weather prediction methods",
+    "Routing charts",
+    "Rule 19 with radar screen, WAO triangle, trial manoeuvre",
+    "Parallel indexing — what it is and why not use a buoy"
+  ],
+  "visual_questions": true,
+  "uses_slideshows": true,
+  "uses_radar_screens": true,
+  "uses_ecdis_screenshots": true,
+  "pass_rate_estimate": "moderate",
+  "last_updated": "2026-03-25",
+  "source_reports": 1,
+  "report_references": ["OOW 3000GT Yacht Orals Report - Sep 2024 - Pass"]
+}

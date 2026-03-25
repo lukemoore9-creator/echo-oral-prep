@@ -1,110 +1,177 @@
 [
   {
     "id": "bridge-equipment-001",
-    "question": "Describe the main features and operation of ECDIS and the requirements for its use as a primary means of navigation.",
+    "question": "What equipment do you have on the bridge of your vessel?",
+    "ideal_answer": "On my current vessel we have two radars — one X-band and one S-band. We have ECDIS as our primary means of navigation with a backup unit. AIS Class A transponder. Magnetic compass and gyro compass. Echo sounder. Speed log. VHF radios — DSC equipped. NAVTEX receiver. GPS as our primary position fixing system. Rate of turn indicator. Rudder angle indicator. Bridge Navigational Watch Alarm System. Sound reception system. And the required publications — chart catalogue, nautical almanac, tide tables, and the corrected paper charts as backup to ECDIS.",
     "key_points": [
-      "Electronic Chart Display and Information System — IMO Performance Standards MSC.232(82)",
-      "Must use Electronic Navigational Charts (ENCs) from authorised hydrographic offices",
-      "Display must show SENC (System ENC) derived from official ENCs",
-      "Raster Navigational Charts (RNCs) may be used only when ENCs are not available — back-up required",
-      "Must have adequate back-up arrangements: second independent ECDIS or up-to-date paper charts",
-      "Requires type-approved equipment and ECDIS-trained operators (STCW training)"
+      "Radar — X-band and S-band, know the difference",
+      "ECDIS — primary navigation with backup arrangements",
+      "AIS transponder",
+      "Magnetic compass and gyro compass",
+      "Echo sounder",
+      "GPS",
+      "VHF with DSC",
+      "NAVTEX",
+      "BNWAS"
     ],
+    "unacceptable_answers": [
+      "Just listing two or three items",
+      "Not knowing what equipment is on their own vessel",
+      "Confusing X-band and S-band purposes"
+    ],
+    "examiner_preferences": {
+      "wants_rule_number_first": false,
+      "wants_practical_examples": true,
+      "wants_verbatim_rule_text": false,
+      "style_notes": "This is a warm-up question. Examiner wants to see the candidate is familiar with their own bridge. Lists are fine here but follow-ups will go deep on individual items."
+    },
     "follow_ups": [
-      "What is the difference between ENC and RNC?",
-      "What are the dangers of over-reliance on ECDIS?"
+      "What radar do you use for navigation and how do you set it up?",
+      "What are the disadvantages of ECDIS?",
+      "What are the disadvantages of AIS?",
+      "Who is required to have AIS fitted?"
     ],
-    "difficulty": "intermediate",
-    "examiner_notes": "Candidates should understand that ECDIS is not just a chart plotter — it integrates position, radar overlay, and route monitoring. Common errors: incorrect display settings hiding dangers, failure to update ENCs, over-zoom, and alarm fatigue. IHO S-52 governs display standards. Type-specific training is required."
+    "common_mistakes": [
+      "Not mentioning backup arrangements",
+      "Not knowing SOLAS carriage requirements",
+      "Listing equipment without understanding purpose"
+    ],
+    "difficulty": 1,
+    "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
+    "examiner_notes": "From real exam: this was the opening technical question after 20min of casual career chat. Examiner then drilled into individual pieces of equipment. Know your own bridge cold."
   },
   {
     "id": "bridge-equipment-002",
-    "question": "Explain the principles and limitations of the magnetic compass.",
+    "question": "What are the disadvantages of ECDIS?",
+    "ideal_answer": "The main disadvantages are over-reliance on the system and complacency — it's easy to stop looking out the window. The display can give a false sense of accuracy — the position shown is only as good as the GPS input, and chart data may have survey limitations. Over-zooming can hide important information. Under-zooming can clutter the display. If the safety contour and safety depth are not set correctly for your vessel, you may not get appropriate alarms. ENC coverage is not complete worldwide — some areas still only have raster chart coverage. The system requires regular software and chart updates. And there's the risk of screen glare affecting night vision on the bridge.",
     "key_points": [
-      "Aligns with magnetic north — affected by variation (difference between true and magnetic north)",
-      "Deviation caused by vessel's own magnetic field — varies with heading",
-      "Deviation card must be current and posted near the compass — swung after any significant changes",
-      "Compass error = variation + deviation (algebraic sum)",
-      "Limitations: affected by ferrous metals, electrical equipment, cargo (e.g., steel, magnetic ore)",
-      "Must be sited away from magnetic influences — binnacle contains corrector magnets and Flinders bar"
+      "Over-reliance and complacency",
+      "Position accuracy depends on GPS input",
+      "Chart data survey limitations",
+      "Over-zooming and under-zooming issues",
+      "Safety contour and safety depth settings critical",
+      "ENC coverage gaps",
+      "Software and chart update requirements"
     ],
+    "unacceptable_answers": [
+      "Saying there are no disadvantages",
+      "Only mentioning one disadvantage",
+      "Not understanding the difference between ENC and RNC"
+    ],
+    "examiner_preferences": {
+      "wants_rule_number_first": false,
+      "wants_practical_examples": true,
+      "wants_verbatim_rule_text": false,
+      "style_notes": "Examiner wants depth of understanding about ECDIS limitations, not just advantages."
+    },
     "follow_ups": [
-      "When should the compass be re-swung?",
-      "What is the Flinders bar used for and how does it work?"
+      "How do you set the safety contour and safety depth? How do you work it out?",
+      "Where would you find the variation on an ECDIS screen?",
+      "What happens if your GPS fails — what will stop working on the bridge?"
     ],
-    "difficulty": "basic",
-    "examiner_notes": "Despite modern electronic navigation, the magnetic compass remains a mandatory carriage requirement (SOLAS V/19). Candidates should know how to read a deviation card and apply corrections using CADET/CDMVT. The compass should be re-swung after significant structural changes, loading of magnetic cargo, long periods on one heading, or drydocking."
+    "common_mistakes": [
+      "Not mentioning safety contour configuration",
+      "Not understanding chart data limitations",
+      "Treating ECDIS as infallible"
+    ],
+    "difficulty": 3,
+    "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
+    "examiner_notes": "From real exam: examiner asked about ECDIS disadvantages, then showed a screenshot of ECDIS screen and asked where to find variation. Followed up with safety contour/depth configuration."
   },
   {
     "id": "bridge-equipment-003",
-    "question": "What are the main controls and display modes available on a marine radar?",
+    "question": "Your GPS fails. What equipment on the bridge will stop working, what are your actions, and how can you fix your position?",
+    "ideal_answer": "If GPS fails, the ECDIS will lose its automatic position update — the displayed position will become unreliable or freeze. AIS will stop transmitting accurate position data. Any radar overlay on ECDIS will be affected. The speed log may still work independently but GPS-derived speed over ground will be lost. My immediate actions would be to inform the master, switch to manual position fixing, and increase the watch. For coastal navigation I would fix my position using radar ranges and bearings off charted objects, visual bearings using the compass and plotting on the paper chart backup, or if available use a secondary positioning system like LORAN or another GNSS constellation. I would also check if it's a receiver fault and try switching to the backup GPS if fitted.",
     "key_points": [
-      "Display modes: relative motion (head-up, course-up, north-up) and true motion",
-      "Range scales: from 0.25 nm to 96 nm typically — select appropriate range for the situation",
-      "Gain control: adjusts receiver sensitivity — too high creates clutter, too low misses targets",
-      "Sea clutter (STC): suppresses returns from sea waves — adjust carefully to avoid suppressing small targets",
-      "Rain clutter (FTC): reduces returns from precipitation — use to see through rain",
-      "EBL (Electronic Bearing Line) and VRM (Variable Range Marker) for measuring bearings and distances"
+      "ECDIS position becomes unreliable",
+      "AIS position data stops updating",
+      "Radar overlay on ECDIS affected",
+      "Inform the master",
+      "Switch to manual position fixing",
+      "Radar ranges and bearings off charted objects",
+      "Visual bearings with compass",
+      "Use paper chart backup",
+      "Try backup GPS receiver"
+    ],
+    "unacceptable_answers": [
+      "Not knowing what systems depend on GPS",
+      "No idea how to fix position without GPS",
+      "Not informing the master"
     ],
     "follow_ups": [
-      "What are the limitations of radar in detecting small targets?",
-      "How do you identify and deal with radar shadow sectors?"
+      "How would you use parallel indexing on radar to monitor your track?",
+      "What is the minimum number of position lines needed for a fix?"
     ],
-    "difficulty": "basic",
-    "examiner_notes": "Candidates must demonstrate practical radar operation competence. Over-suppression of sea clutter is a common cause of missed targets. The IMO Performance Standards require minimum detection of certain target sizes. ARPA/target tracking functionality should be understood in terms of acquisition, tracking, and alarm settings."
+    "difficulty": 3,
+    "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
+    "examiner_notes": "From real exam: examiner wanted to see the candidate understand GPS dependency and have practical fallback skills. Connected to radar PI discussion."
   },
   {
     "id": "bridge-equipment-004",
-    "question": "Describe the Automatic Identification System (AIS) and its role in navigation and collision avoidance.",
+    "question": "Explain AIS — how does it work and what are its disadvantages? Who is required to have it?",
+    "ideal_answer": "AIS is the Automatic Identification System. It's a VHF transponder that automatically transmits and receives vessel information on two dedicated VHF frequencies. It broadcasts static information like vessel name, MMSI, dimensions, and type. It also sends dynamic data — position, course over ground, speed over ground, heading, and rate of turn — which updates every few seconds depending on speed. SOLAS requires Class A AIS on all vessels over 300 gross tonnage on international voyages and all passenger ships. The disadvantages are that not all vessels carry it — small vessels, fishing boats, and warships may not have it or may switch it off. The data is only as accurate as what's been entered — often the navigation status, draught, or destination is wrong. And it should never replace radar or visual lookout for collision avoidance.",
     "key_points": [
-      "AIS transponder transmits and receives vessel information on VHF frequencies (161.975 and 162.025 MHz)",
-      "Class A (mandatory SOLAS vessels): transmits MMSI, position, COG, SOG, heading, ROT, navigation status, vessel name, type, dimensions, draught, destination, ETA",
-      "Dynamic information updated every 2-10 seconds depending on speed and course change",
-      "Static and voyage-related data transmitted every 6 minutes",
-      "AIS does not replace radar or visual lookout — it supplements them",
-      "Limitations: relies on other vessels having AIS fitted and switched on, data accuracy depends on correct input"
+      "VHF transponder — two dedicated frequencies",
+      "Static data: name, MMSI, dimensions, type",
+      "Dynamic data: position, COG, SOG, heading, ROT",
+      "SOLAS requirement: vessels over 300GT international, all passenger ships",
+      "Disadvantages: not all vessels carry it, data accuracy depends on input",
+      "Does not replace radar or visual lookout"
     ],
-    "follow_ups": [
-      "Under what circumstances may AIS be switched off?",
-      "How does AIS data appear on ECDIS and radar?"
+    "unacceptable_answers": [
+      "Thinking all vessels have AIS",
+      "Using AIS as sole means of collision avoidance",
+      "Not knowing the carriage requirements"
     ],
-    "difficulty": "intermediate",
-    "examiner_notes": "SOLAS V/19.2.4 requires Class A AIS on international voyaging ships >= 300 GT and all passenger ships. Candidates should know that AIS data is only as accurate as the information entered — incorrect draught, destination, or navigation status are common issues. AIS should not be used for collision avoidance in isolation."
+    "difficulty": 2,
+    "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
+    "examiner_notes": "From real exam: examiner discussed AIS at length, particularly disadvantages and who must carry it. Practical understanding expected."
   },
   {
     "id": "bridge-equipment-005",
-    "question": "What is the purpose of the echo sounder and what factors affect the accuracy of depth readings?",
+    "question": "What is the significance of variation, and what about deviation — what causes it?",
+    "ideal_answer": "Variation is the angular difference between true north and magnetic north at any given position on the earth. It changes depending on where you are geographically and it changes slowly over time — the annual rate of change is shown on the chart compass rose. Deviation is the error in the magnetic compass caused by the vessel's own magnetic field — the steel in the hull, engines, electrical equipment, and cargo. Deviation changes with the vessel's heading, which is why we have a deviation card that shows the error on different headings. The compass needs to be swung regularly to update this card, particularly after structural changes, loading magnetic cargo, or long periods in dock.",
     "key_points": [
-      "Measures depth below the transducer using acoustic pulse timing",
-      "Speed of sound in seawater approximately 1505 m/s — varies with temperature, salinity, and pressure",
-      "Transducer draught must be applied to obtain depth below keel or water depth",
-      "Errors: aeration under the hull, thermocline effects, false echoes from marine life or suspended sediment",
-      "Under-keel clearance monitoring essential in shallow waters",
-      "SOLAS V/19.2.3 requires echo sounder on all vessels >= 300 GT"
+      "Variation: difference between true north and magnetic north",
+      "Changes with geographic position",
+      "Annual rate of change on chart compass rose",
+      "Deviation: compass error from vessel's own magnetic field",
+      "Changes with vessel's heading",
+      "Deviation card shows error per heading",
+      "Compass must be swung to update"
     ],
-    "follow_ups": [
-      "How does the speed of sound in seawater affect accuracy?",
-      "What is the difference between a single-beam and multi-beam echo sounder?"
+    "unacceptable_answers": [
+      "Confusing variation and deviation",
+      "Not knowing what causes deviation",
+      "Not knowing when to swing the compass"
     ],
-    "difficulty": "basic",
-    "examiner_notes": "Practical knowledge of echo sounder limitations is essential. Aeration from bow thruster or heavy weather can cause signal loss. Candidates should know how to set the draught offset and understand the difference between depth below keel and charted depth. Comparison with charted depth provides a position check."
+    "difficulty": 2,
+    "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
+    "examiner_notes": "From real exam: this was asked early as a fundamentals check. Examiner wanted discussion about deviation causes specifically."
   },
   {
     "id": "bridge-equipment-006",
-    "question": "Explain the purpose and operation of a rate of turn indicator and its importance for manoeuvring.",
+    "question": "How do you use parallel indexing on radar for coastal navigation, and how can you determine you're on track?",
+    "ideal_answer": "Parallel indexing is a radar technique where I set an electronic bearing line parallel to my planned track at a predetermined range from a fixed radar-conspicuous object — like a headland or lighthouse. As I navigate along my track, if the radar return from that object tracks along the PI line, I know I'm on my planned course. If it drifts above or below the line, I know I'm set off track and can make corrections. I set it up during passage planning by measuring the perpendicular distance from the reference object to my planned track on the chart, then setting the PI line at that range offset on the radar. It's particularly useful in poor visibility and at night when visual references are limited.",
     "key_points": [
-      "Measures the angular rate of change of heading in degrees per minute",
-      "Based on gyroscopic principles — senses rotational forces",
-      "Essential for navigating narrow channels, making precise course alterations, and berthing",
-      "SOLAS V/19.2.9 requires ROT indicator for vessels >= 50,000 GT",
-      "Typical display: analogue dial or digital readout showing port/starboard turn rate",
-      "Used in conjunction with rudder angle indicator for assessing vessel response"
+      "EBL set parallel to planned track",
+      "Offset distance measured from chart",
+      "Fixed radar-conspicuous object as reference",
+      "Object tracking along PI line means on track",
+      "Drift indicates set off course",
+      "Set up during passage planning"
+    ],
+    "unacceptable_answers": [
+      "Not knowing what parallel indexing is",
+      "Confusing PI with radar plotting for collision avoidance",
+      "Not understanding how to set it up from the chart"
     ],
     "follow_ups": [
-      "How does the ROT indicator assist during wheel-over points in confined waters?",
-      "What is the relationship between rate of turn and vessel speed?"
+      "Why not use a buoy for parallel indexing?",
+      "How often would you check your PI line during a coastal passage?"
     ],
-    "difficulty": "intermediate",
-    "examiner_notes": "ROT information is also transmitted via AIS and displayed on ECDIS. Candidates should understand that ROT is critical for pilotage and confined water navigation — a vessel's turning characteristics change with speed, draught, and trim. The IMO turning circle standards should be referenced."
+    "difficulty": 3,
+    "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
+    "examiner_notes": "From real exam: examiner asked about PI as follow-up to GPS failure scenario. Asked specifically why not use a buoy (answer: buoys can drag or be off station). High-value practical question."
   }
 ]

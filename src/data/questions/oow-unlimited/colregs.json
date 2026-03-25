@@ -2,131 +2,186 @@
   {
     "id": "colregs-001",
     "question": "What actions should be taken when two power-driven vessels are meeting head-on?",
+    "ideal_answer": "Under Rule 14, when two power-driven vessels are meeting on reciprocal or nearly reciprocal courses so as to involve risk of collision, each shall alter her course to starboard so that each passes on the port side of the other. This situation exists when a vessel sees the other ahead or nearly ahead, and by night she could see the masthead lights in a line or nearly in a line and both sidelights. When in doubt, she shall assume such a situation exists and act accordingly.",
     "key_points": [
       "Rule 14 applies — head-on situation",
       "Each vessel shall alter course to starboard",
-      "Pass port to port"
+      "Pass port to port",
+      "By night: both masthead lights in line and both sidelights visible",
+      "When in doubt, assume head-on"
     ],
+    "unacceptable_answers": [
+      "Not referencing Rule 14",
+      "Suggesting one vessel has priority over the other",
+      "Confusing with crossing situation obligations"
+    ],
+    "examiner_preferences": {
+      "wants_rule_number_first": true,
+      "wants_practical_examples": true,
+      "wants_verbatim_rule_text": false,
+      "style_notes": "Examiner wants practical understanding, not flashcard recitation. Ask what they would actually do on the bridge."
+    },
     "follow_ups": [
       "What if the other vessel doesn't alter?",
-      "At what angle does a head-on situation become a crossing situation?"
+      "At what angle does a head-on situation become a crossing situation?",
+      "What lights would you see at night to identify this as head-on?"
     ],
-    "difficulty": "intermediate",
+    "common_mistakes": [
+      "Not mentioning the doubt clause in Rule 14(c)",
+      "Forgetting to mention the visual cues for identifying head-on",
+      "Not knowing when head-on becomes crossing"
+    ],
+    "difficulty": 2,
     "examiner_notes": "Candidates should reference Rule 14 specifically. Common mistake: forgetting that this rule applies when vessels are in sight of one another."
   },
   {
     "id": "colregs-002",
     "question": "A power-driven vessel is crossing from your starboard side. What are your obligations?",
+    "ideal_answer": "Under Rule 15, when two power-driven vessels are crossing so as to involve risk of collision, the vessel which has the other on her starboard side shall keep out of the way. As the give-way vessel under Rule 16, I must take early and substantial action to keep well clear. I should avoid crossing ahead of the other vessel. Practically, I would alter course to starboard to pass under her stern, or reduce speed, or both. The key is making my action early enough and obvious enough that the stand-on vessel can see my intentions on radar.",
     "key_points": [
       "Rule 15 — crossing situation",
       "You are the give-way vessel when the other is on your starboard side",
       "Avoid crossing ahead of the other vessel",
-      "Rule 16 — take early and substantial action"
+      "Rule 16 — take early and substantial action",
+      "Alter to starboard to pass under stern, or reduce speed"
     ],
+    "unacceptable_answers": [
+      "Altering to port",
+      "Not referencing Rules 15 and 16",
+      "Small incremental course changes instead of substantial action"
+    ],
+    "examiner_preferences": {
+      "wants_rule_number_first": true,
+      "wants_practical_examples": true,
+      "wants_verbatim_rule_text": false,
+      "style_notes": "Wants to hear what you would physically do, not just what the rule says."
+    },
     "follow_ups": [
       "What should the stand-on vessel do if the give-way vessel fails to act?",
-      "When does Rule 17(b) permit the stand-on vessel to take action?"
+      "When does Rule 17(b) permit the stand-on vessel to take action?",
+      "How would you determine risk of collision exists?"
     ],
-    "difficulty": "basic",
+    "common_mistakes": [
+      "Not explaining the practical action they would take",
+      "Forgetting Rule 16 requirement for early and substantial action",
+      "Not knowing Rule 17 stand-on obligations"
+    ],
+    "difficulty": 2,
     "examiner_notes": "Ensure candidates understand the starboard-side priority rule. They should explain the difference between give-way and stand-on obligations clearly."
   },
   {
-    "id": "colregs-003",
-    "question": "Describe the lights and shapes displayed by a vessel restricted in her ability to manoeuvre.",
+    "id": "colregs-009",
+    "question": "I'm showing you a vessel on the slideshow. She's displaying two red lights in a vertical line. No other lights. What is she and what are your actions?",
+    "ideal_answer": "That is a vessel not under command, showing two all-round red lights in a vertical line as required by Rule 27(a). She is not making way as there are no sidelights or sternlight showing. Under Rule 18, as a power-driven vessel I shall keep out of her way. I would assess the situation using radar and visual bearings, determine if risk of collision exists, and if so alter my course to starboard to pass well clear, giving her a wide berth as she cannot manoeuvre effectively.",
     "key_points": [
-      "Rule 27(b) applies",
-      "Three all-round lights in a vertical line: red-white-red",
-      "By day: ball-diamond-ball shape in a vertical line",
-      "Masthead, sidelights and sternlight when making way"
+      "Vessel not under command — Rule 27(a)",
+      "Two all-round red lights vertical line",
+      "Not making way — no sidelights or sternlight",
+      "Rule 18 — power-driven vessel keeps clear",
+      "Give wide berth as she cannot manoeuvre"
     ],
+    "unacceptable_answers": [
+      "Confusing NUC with RAM lights",
+      "Not recognising absence of sidelights means not making way",
+      "Not mentioning Rule 18 hierarchy"
+    ],
+    "examiner_preferences": {
+      "wants_rule_number_first": false,
+      "wants_practical_examples": true,
+      "wants_verbatim_rule_text": false,
+      "style_notes": "Start with identification, then explain what you see, then your actions. Examiner wants practical response not textbook."
+    },
     "follow_ups": [
-      "How do these differ from a vessel not under command?",
-      "Give three examples of vessels restricted in their ability to manoeuvre."
+      "What would change if she also showed sidelights and a sternlight?",
+      "What day shape would she show?",
+      "Give me the definition of not under command from the COLREGs"
     ],
-    "difficulty": "intermediate",
-    "examiner_notes": "Candidates often confuse RAM with NUC lights. Key distinction: NUC shows two red all-round lights, RAM shows red-white-red. Examples from Rule 3(g) should be cited."
+    "common_mistakes": [
+      "Confusing NUC (two red) with RAM (red-white-red)",
+      "Not noting the significance of missing sidelights",
+      "Giving flashcard answer without practical actions"
+    ],
+    "difficulty": 2,
+    "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
+    "examiner_notes": "From real exam report: examiner showed slides of vessel light configurations and wanted definitions plus practical actions. Did not want flashcard answers."
   },
   {
-    "id": "colregs-004",
-    "question": "What constitutes a narrow channel under the COLREGs and what are the obligations of vessels navigating in one?",
+    "id": "colregs-010",
+    "question": "I'm showing you a radar screen. We're in restricted visibility. Talk me through Rule 19 and what you would do with these targets.",
+    "ideal_answer": "Rule 19 applies to vessels not in sight of one another in restricted visibility. Every vessel must proceed at a safe speed adapted for the conditions. If I detect another vessel by radar alone and risk of collision is developing, I must take avoiding action in ample time. If I need to alter course, I should avoid altering to port for a vessel forward of my beam, and avoid altering towards a vessel abeam or abaft the beam. I would use the radar plotting facilities — either manual or ARPA — to determine the target's course, speed, CPA and TCPA. I'd plot the WAO triangle to determine the true vector. If the CPA is too close, I would take early action and use the trial manoeuvre function to check my proposed alteration before executing it.",
     "key_points": [
-      "Rule 9 governs narrow channels",
-      "Keep as near to the outer limit of the channel on the starboard side as is safe and practicable",
-      "Vessels less than 20m or sailing vessels shall not impede vessels that can only navigate within the channel",
-      "Overtaking in a narrow channel requires agreement via sound signals"
+      "Rule 19 — restricted visibility, not in sight",
+      "Safe speed for conditions",
+      "Avoid altering to port for vessel forward of beam",
+      "Avoid altering towards vessel abeam or abaft beam",
+      "Use radar plotting — CPA, TCPA, true vectors",
+      "WAO triangle for manual plotting",
+      "Trial manoeuvre function to verify action"
     ],
+    "unacceptable_answers": [
+      "Applying Rules 12-18 (these only apply in sight)",
+      "Not mentioning the port-turn prohibition",
+      "Not knowing what WAO triangle is",
+      "Unable to explain trial manoeuvre"
+    ],
+    "examiner_preferences": {
+      "wants_rule_number_first": true,
+      "wants_practical_examples": true,
+      "wants_verbatim_rule_text": false,
+      "style_notes": "Examiner showed radar screen and expected candidate to talk through the full process including plotting. Wanted to see practical radar work, not just rule recitation."
+    },
     "follow_ups": [
-      "What sound signals are used for overtaking in a narrow channel?",
-      "Does Rule 9 override Rule 15 in a crossing situation within a narrow channel?"
+      "Show me the WAO triangle on this radar plot",
+      "What else can we use on the radar to avoid collision?",
+      "Talk me through how you would use trial mode"
     ],
-    "difficulty": "advanced",
-    "examiner_notes": "Candidates should understand the hierarchy of rules. The 'shall not impede' obligation in Rule 9(b) and (c) is distinct from give-way obligations. Strong candidates will discuss the interplay between Rules 9 and 15."
+    "common_mistakes": [
+      "Not knowing the difference between Rules 12-18 and Rule 19 application",
+      "Forgetting the port-turn rule",
+      "Not mentioning trial manoeuvre",
+      "Unable to explain radar plotting practically"
+    ],
+    "difficulty": 4,
+    "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
+    "examiner_notes": "From real exam: examiner showed radar screen with two targets (port forward and abeam starboard). Wanted full Rule 19 application with practical radar plotting including WAO triangle and trial manoeuvre. This is a high-value question."
   },
   {
-    "id": "colregs-005",
-    "question": "What is a safe speed and what factors must be taken into account when determining it?",
+    "id": "colregs-011",
+    "question": "I'm showing you some buoyage. Identify this mark and tell me what your actions would be.",
+    "ideal_answer": "That is a starboard lateral mark under IALA Region A. It is a green conical buoy. It marks the starboard side of a channel when proceeding in the conventional direction of buoyage. I would leave this mark to starboard when entering harbour or heading with the flood tide. At night it shows a green flashing light.",
     "key_points": [
-      "Rule 6 defines safe speed",
-      "Must allow proper and effective action to avoid collision",
-      "Must allow stopping within an appropriate distance",
-      "Factors include visibility, traffic density, manoeuvrability, background lights, wind/sea/current, draught vs available depth",
-      "Additional factors when radar is available: characteristics and limitations of radar, sea state effects on detection, effect of vessel's own activities on radar"
+      "Correct identification of mark type",
+      "IALA Region A or B — know the difference",
+      "Correct colour and shape",
+      "Correct action — which side to leave it",
+      "Night-time light characteristics"
     ],
+    "unacceptable_answers": [
+      "Confusing IALA A and B",
+      "Wrong colour or shape identification",
+      "Passing on wrong side",
+      "Not knowing the conventional direction of buoyage"
+    ],
+    "examiner_preferences": {
+      "wants_rule_number_first": false,
+      "wants_practical_examples": true,
+      "wants_verbatim_rule_text": false,
+      "style_notes": "Examiner showed multiple buoys in sequence: starboard lateral IALA A, north cardinal, east cardinal, west cardinal, emergency wreck, preferred channel marks IALA A & B. Rapid identification expected."
+    },
     "follow_ups": [
-      "How does radar availability affect determination of safe speed?",
-      "Can a vessel ever be considered to be proceeding at a safe speed while at full ahead?"
+      "What about IALA Region B — how would this differ?",
+      "South cardinal — you're steering 270, what are your actions?",
+      "What is a preferred channel mark and how do you identify it?"
     ],
-    "difficulty": "basic",
-    "examiner_notes": "Rule 6 lists factors for all vessels and additional factors for vessels with operational radar. Candidates should be able to list at least four factors from each category."
-  },
-  {
-    "id": "colregs-006",
-    "question": "Describe the fog signals required by a power-driven vessel making way through the water in restricted visibility.",
-    "key_points": [
-      "Rule 35(a) applies",
-      "One prolonged blast at intervals of not more than 2 minutes",
-      "A prolonged blast is 4 to 6 seconds duration",
-      "Signal is made by whistle"
+    "common_mistakes": [
+      "Confusing IALA A and B lateral colours",
+      "Not knowing cardinal mark top marks",
+      "Not knowing light characteristics"
     ],
-    "follow_ups": [
-      "How does the signal change if the vessel is underway but stopped and not making way?",
-      "What signal would a vessel not under command make in restricted visibility?"
-    ],
-    "difficulty": "basic",
-    "examiner_notes": "Candidates frequently confuse 'underway but not making way' (two prolonged blasts) with 'making way' (one prolonged blast). Emphasise the distinction."
-  },
-  {
-    "id": "colregs-007",
-    "question": "A vessel is overtaking another in open waters. Describe the responsibilities of each vessel.",
-    "key_points": [
-      "Rule 13 — overtaking situation",
-      "Overtaking vessel is the give-way vessel",
-      "Coming up from more than 22.5 degrees abaft the beam",
-      "The obligation remains until finally past and clear",
-      "If in doubt whether overtaking or crossing, assume overtaking"
-    ],
-    "follow_ups": [
-      "Can the overtaking vessel subsequently become a crossing vessel if the situation changes?",
-      "What lights would you see to determine you are overtaking?"
-    ],
-    "difficulty": "intermediate",
-    "examiner_notes": "Rule 13(d) is critical — once an overtaking vessel, always an overtaking vessel for that encounter. Candidates should note the 22.5 degree sector and reference seeing only the sternlight."
-  },
-  {
-    "id": "colregs-008",
-    "question": "Explain the responsibilities between a sailing vessel and a vessel engaged in fishing when risk of collision exists.",
-    "key_points": [
-      "Rule 18 — responsibilities between vessels",
-      "A power-driven vessel shall keep out of the way of a sailing vessel and a vessel engaged in fishing",
-      "A sailing vessel shall keep out of the way of a vessel engaged in fishing",
-      "The fishing vessel has priority as it is more restricted in manoeuvrability",
-      "These rules do not apply in narrow channels, TSS, or restricted visibility"
-    ],
-    "follow_ups": [
-      "What constitutes 'engaged in fishing' under the COLREGs?",
-      "Does a vessel trolling with lines count as engaged in fishing?"
-    ],
-    "difficulty": "intermediate",
-    "examiner_notes": "Rule 3(d) defines fishing as using apparatus that restricts manoeuvrability — trolling lines do not qualify. Candidates should know the full hierarchy: NUC > RAM > CBD > fishing > sailing > power-driven."
+    "difficulty": 2,
+    "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
+    "visual": "buoys/starboard-lateral-iala-a.png",
+    "visual_instruction": "Show this buoy image. Do not describe it — candidate must identify it.",
+    "examiner_notes": "From real exam: examiner showed multiple buoys in rapid succession. Wanted identification, meaning, and actions for each. This is a core visual identification skill."
   }
 ]
