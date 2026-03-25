@@ -1,29 +1,23 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
+import { useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface TranscriptPanelProps {
   transcript: Array<{
-    speaker: 'examiner' | 'candidate';
+    speaker: "examiner" | "candidate";
     text: string;
     timestamp: number;
   }>;
   interimTranscript?: string;
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
-
-export function TranscriptPanel({ transcript, interimTranscript }: TranscriptPanelProps) {
+export function TranscriptPanel({
+  transcript,
+  interimTranscript,
+}: TranscriptPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -35,44 +29,44 @@ export function TranscriptPanel({ transcript, interimTranscript }: TranscriptPan
       ref={scrollRef}
       className="overflow-y-auto border-t border-[#E5E7EB]"
       style={{
-        maxHeight: 250,
-        scrollbarWidth: 'thin',
-        scrollbarColor: '#D1D5DB transparent',
+        maxHeight: 280,
+        scrollbarWidth: "thin",
+        scrollbarColor: "#D1D5DB transparent",
       }}
     >
-      <div className="mx-auto max-w-2xl px-6 py-4 space-y-4">
+      <div className="mx-auto max-w-2xl space-y-4 px-6 py-5">
         {transcript.length === 0 && !interimTranscript && (
-          <p className="text-sm text-[#9CA3AF] text-center py-4">
+          <p className="py-6 text-center text-sm text-[#9CA3AF]">
             Your conversation will appear here...
           </p>
         )}
 
         <AnimatePresence mode="popLayout">
           {transcript.map((msg, index) => {
-            const isExaminer = msg.speaker === 'examiner';
+            const isExaminer = msg.speaker === "examiner";
 
             return (
               <motion.div
                 key={`${msg.timestamp}-${index}`}
-                className="flex gap-3"
-                initial={{ opacity: 0, y: 8 }}
+                className={`rounded-lg px-4 py-3 ${
+                  isExaminer ? "bg-[#F7F8FA]" : "bg-white"
+                }`}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.25, ease: 'easeOut' }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
               >
                 <span
-                  className="mt-0.5 shrink-0 text-xs font-semibold uppercase tracking-wider"
-                  style={{
-                    color: isExaminer ? '#111111' : '#6B7280',
-                  }}
+                  className={`mb-1 block text-xs font-medium ${
+                    isExaminer ? "text-[#111111]" : "text-[#6B7280]"
+                  }`}
                 >
-                  {isExaminer ? 'Examiner' : 'You'}
+                  {isExaminer ? "Examiner" : "You"}
                 </span>
                 <p
-                  className="text-[15px] leading-relaxed"
-                  style={{
-                    color: isExaminer ? '#111111' : '#6B7280',
-                  }}
+                  className={`text-[15px] leading-[1.6] ${
+                    isExaminer ? "text-[#111111]" : "text-[#374151]"
+                  }`}
                 >
                   {msg.text}
                 </p>
@@ -81,17 +75,16 @@ export function TranscriptPanel({ transcript, interimTranscript }: TranscriptPan
           })}
         </AnimatePresence>
 
-        {/* Interim transcript (while user is still speaking) */}
         {interimTranscript && (
           <motion.div
-            className="flex gap-3"
+            className="rounded-lg bg-white px-4 py-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <span className="mt-0.5 shrink-0 text-xs font-semibold uppercase tracking-wider text-[#9CA3AF]">
+            <span className="mb-1 block text-xs font-medium text-[#9CA3AF]">
               You
             </span>
-            <p className="text-[15px] leading-relaxed italic text-[#9CA3AF]">
+            <p className="text-[15px] leading-[1.6] italic text-[#9CA3AF]">
               {interimTranscript}
             </p>
           </motion.div>

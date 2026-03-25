@@ -3,14 +3,24 @@
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 
 const TICKET_OPTIONS = [
   { value: "oow-3000gt-yacht", label: "OOW <3000GT (Yacht)" },
   { value: "oow-unlimited", label: "OOW Unlimited" },
   { value: "master-3000gt", label: "Master <3000GT" },
   { value: "master-unlimited", label: "Master Unlimited" },
-  { value: "ym-offshore", label: "Yacht Master Offshore" },
-  { value: "ym-ocean", label: "Yacht Master Ocean" },
 ];
 
 export default function OnboardingPage() {
@@ -19,6 +29,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [hasExamDate, setHasExamDate] = useState(false);
+  const [ticketType, setTicketType] = useState("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -34,7 +45,7 @@ export default function OnboardingPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           fullName: formData.get("fullName"),
-          ticketType: formData.get("ticketType"),
+          ticketType,
           hasExamDate,
           examDate: hasExamDate ? formData.get("examDate") : null,
         }),
@@ -48,7 +59,6 @@ export default function OnboardingPage() {
         return;
       }
 
-      // Reload Clerk user to pick up new publicMetadata
       await user?.reload();
       router.push("/");
     } catch {
@@ -59,96 +69,105 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-white px-6">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-bold text-[#111111]">
-          Let&apos;s get you set up
-        </h1>
-        <p className="mt-2 text-[15px] text-[#6B7280]">
-          Tell us about your exam so we can personalise your prep.
-        </p>
-
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div>
-            <label
-              htmlFor="fullName"
-              className="block text-sm font-medium text-[#111111]"
-            >
-              Full name
-            </label>
-            <input
-              id="fullName"
-              name="fullName"
-              type="text"
-              required
-              defaultValue={user?.fullName || ""}
-              className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-4 py-2.5 text-[15px] text-[#111111] outline-none transition-colors focus:border-[#2563EB]"
-            />
+      <Card className="w-full max-w-[480px] border border-[#E5E7EB] shadow-none">
+        <CardContent className="px-8 py-10">
+          <div className="mb-10">
+            <span className="text-2xl font-bold tracking-tight text-[#111111]">
+              Echo
+            </span>
           </div>
 
-          <div>
-            <label
-              htmlFor="ticketType"
-              className="block text-sm font-medium text-[#111111]"
-            >
-              What exam are you preparing for?
-            </label>
-            <select
-              id="ticketType"
-              name="ticketType"
-              required
-              className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-4 py-2.5 text-[15px] text-[#111111] outline-none transition-colors focus:border-[#2563EB]"
-            >
-              <option value="">Select your exam</option>
-              {TICKET_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
+          <h1 className="text-xl font-bold tracking-tight text-[#111111]">
+            Let&apos;s get you set up
+          </h1>
+          <p className="mt-2 text-[15px] leading-relaxed text-[#6B7280]">
+            Tell us about your exam so we can personalise your prep.
+          </p>
 
-          <div>
-            <label className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={hasExamDate}
-                onChange={(e) => setHasExamDate(e.target.checked)}
-                className="h-4 w-4 rounded border-[#E5E7EB] text-[#2563EB]"
-              />
-              <span className="text-sm font-medium text-[#111111]">
-                I have an exam date
-              </span>
-            </label>
-          </div>
-
-          {hasExamDate && (
-            <div>
-              <label
-                htmlFor="examDate"
-                className="block text-sm font-medium text-[#111111]"
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <div className="space-y-2">
+              <Label
+                htmlFor="fullName"
+                className="text-sm font-medium text-[#111111]"
               >
-                Exam date
-              </label>
-              <input
-                id="examDate"
-                name="examDate"
-                type="date"
-                className="mt-1 w-full rounded-lg border border-[#E5E7EB] px-4 py-2.5 text-[15px] text-[#111111] outline-none transition-colors focus:border-[#2563EB]"
+                Full name
+              </Label>
+              <Input
+                id="fullName"
+                name="fullName"
+                type="text"
+                required
+                defaultValue={user?.fullName || ""}
+                className="h-[44px] rounded-lg border-[#E5E7EB] bg-white px-4 text-[15px] text-[#111111] transition-colors focus-visible:border-[#2563EB] focus-visible:ring-[#2563EB]/20"
+                placeholder="Your full name"
               />
             </div>
-          )}
 
-          {error && <p className="text-sm text-[#EF4444]">{error}</p>}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium text-[#111111]">
+                What exam are you preparing for?
+              </Label>
+              <Select
+                value={ticketType}
+                onValueChange={(value) => setTicketType(value ?? "")}
+              >
+                <SelectTrigger className="h-[44px] w-full rounded-lg border-[#E5E7EB] bg-white px-4 text-[15px] text-[#111111] transition-colors focus-visible:border-[#2563EB] focus-visible:ring-[#2563EB]/20">
+                  <SelectValue placeholder="Select your exam" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TICKET_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-[#2563EB] px-6 py-3 text-[15px] font-medium text-white transition-colors hover:bg-[#1D4ED8] disabled:opacity-50"
-          >
-            {loading ? "Setting up..." : "Continue"}
-          </button>
-        </form>
-      </div>
+            <div className="flex items-center gap-3">
+              <Checkbox
+                checked={hasExamDate}
+                onCheckedChange={(checked) =>
+                  setHasExamDate(checked === true)
+                }
+                className="size-4 rounded border-[#E5E7EB] data-checked:border-[#2563EB] data-checked:bg-[#2563EB]"
+              />
+              <Label className="text-sm font-medium text-[#111111] cursor-pointer">
+                I have an exam date
+              </Label>
+            </div>
+
+            {hasExamDate && (
+              <div className="space-y-2">
+                <Label
+                  htmlFor="examDate"
+                  className="text-sm font-medium text-[#111111]"
+                >
+                  Exam date
+                </Label>
+                <Input
+                  id="examDate"
+                  name="examDate"
+                  type="date"
+                  className="h-[44px] rounded-lg border-[#E5E7EB] bg-white px-4 text-[15px] text-[#111111] transition-colors focus-visible:border-[#2563EB] focus-visible:ring-[#2563EB]/20"
+                />
+              </div>
+            )}
+
+            {error && (
+              <p className="text-sm text-[#EF4444]">{error}</p>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading || !ticketType}
+              className="h-[44px] w-full rounded-lg bg-[#2563EB] text-[15px] font-medium text-white hover:bg-[#1D4ED8] disabled:opacity-50"
+            >
+              {loading ? "Setting up..." : "Continue"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }
