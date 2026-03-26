@@ -80,6 +80,8 @@ STUDENT CONTEXT:
         studentContext;
     }
 
+    console.log(`[Chat] System prompt length: ${systemPrompt.length} chars`);
+
     const stream = client.messages.stream({
       model: "claude-sonnet-4-20250514",
       max_tokens: 250,
