@@ -34,12 +34,15 @@ export function buildExaminerPrompt(
       questionSection = formatQuestions(questions);
     }
   } else {
-    // Load all available topics as a summary
+    // Opening / general session — load a small sample of questions only
     const topics = listTopics(slug);
     if (topics.length > 0) {
       const allQuestions = loadQuestions(slug);
-      if (allQuestions.length > 0) {
-        questionSection = formatQuestions(allQuestions);
+      const sampled = allQuestions.length > 15
+        ? allQuestions.sort(() => Math.random() - 0.5).slice(0, 15)
+        : allQuestions;
+      if (sampled.length > 0) {
+        questionSection = formatQuestions(sampled);
       }
     }
   }
