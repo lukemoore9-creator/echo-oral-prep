@@ -29,6 +29,33 @@ interface UseVoiceSessionReturn {
 }
 
 // ---------------------------------------------------------------------------
+// Topic detection
+// ---------------------------------------------------------------------------
+
+const TOPIC_KEYWORDS: Record<string, string> = {
+  'colreg': 'colregs', 'rule ': 'colregs', 'collision': 'colregs',
+  'navigation': 'navigation', 'passage plan': 'navigation', 'chart': 'navigation',
+  'safety': 'safety', 'fire': 'safety', 'man overboard': 'safety', 'mob': 'safety', 'abandon': 'safety',
+  'solas': 'solas',
+  'meteorolog': 'meteorology', 'weather': 'meteorology', 'synoptic': 'meteorology',
+  'stability': 'stability', 'gm': 'stability', 'gz': 'stability',
+  'marpol': 'marpol', 'pollution': 'marpol',
+  'stcw': 'stcw', 'watchkeep': 'stcw',
+  'cargo': 'cargo',
+  'gmdss': 'gmdss', 'distress': 'gmdss', 'vhf': 'gmdss',
+  'radar': 'bridge-equipment', 'ecdis': 'bridge-equipment', 'ais': 'bridge-equipment', 'bridge': 'bridge-equipment',
+  'maritime law': 'maritime-law', 'ism': 'maritime-law', 'mlc': 'maritime-law',
+};
+
+function detectTopic(text: string): string | null {
+  const lower = text.toLowerCase();
+  for (const [keyword, topic] of Object.entries(TOPIC_KEYWORDS)) {
+    if (lower.includes(keyword)) return topic;
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -103,6 +130,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   // ---- Refs ----
   const messagesRef = useRef<Message[]>([]);
   const ticketTypeRef = useRef<string>('oow-unlimited');
+  const currentTopicRef = useRef<string | null>(null);
   const stateRef = useRef<SessionState>('idle');
   const isSessionActiveRef = useRef(false);
 
@@ -281,6 +309,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
           body: JSON.stringify({
             messages: messagesRef.current,
             ticketType: ticketTypeRef.current,
+            currentTopic: currentTopicRef.current,
           }),
         });
 
@@ -291,6 +320,10 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         // Stream response + pipeline TTS
         const assistantText = await streamAndSpeak(chatRes);
         console.log('[VoiceSession] All TTS complete for:', assistantText.substring(0, 50) + '...');
+
+        // Detect topic from response for next request
+        const detected = detectTopic(assistantText);
+        if (detected) currentTopicRef.current = detected;
 
         const assistantMsg: Message = { role: 'assistant', content: assistantText };
         messagesRef.current = [...messagesRef.current, assistantMsg];
