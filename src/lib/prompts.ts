@@ -33,19 +33,8 @@ export function buildExaminerPrompt(
     if (questions.length > 0) {
       questionSection = formatQuestions(questions);
     }
-  } else {
-    // Opening / general session — load a small sample of questions only
-    const topics = listTopics(slug);
-    if (topics.length > 0) {
-      const allQuestions = loadQuestions(slug);
-      const sampled = allQuestions.length > 15
-        ? allQuestions.sort(() => Math.random() - 0.5).slice(0, 15)
-        : allQuestions;
-      if (sampled.length > 0) {
-        questionSection = formatQuestions(sampled);
-      }
-    }
   }
+  // No topic = opening greeting. No course content or questions needed.
 
   const isYacht =
     slug.includes("ym-") ||

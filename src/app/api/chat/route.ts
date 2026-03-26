@@ -9,7 +9,8 @@ const client = new Anthropic();
 
 export async function POST(req: Request) {
   try {
-    const { messages, ticketType, topic } = await req.json();
+    const { messages, ticketType, topic, currentTopic } = await req.json();
+    const effectiveTopic = currentTopic || topic;
 
     // Build student context (non-blocking — works without it)
     let studentContext = "";
@@ -69,7 +70,7 @@ STUDENT CONTEXT:
     let systemPrompt: string;
     try {
       systemPrompt =
-        buildExaminerPrompt(ticketType || "OOW Unlimited", topic) +
+        buildExaminerPrompt(ticketType || "OOW Unlimited", effectiveTopic) +
         studentContext;
     } catch (err) {
       console.error("Failed to build examiner prompt from knowledge base:", err);
@@ -80,7 +81,7 @@ STUDENT CONTEXT:
         studentContext;
     }
 
-    console.log(`[Chat] System prompt length: ${systemPrompt.length} chars`);
+    console.log(`[Chat] Prompt size: ${systemPrompt.length} chars, topic: ${effectiveTopic || 'none'}`);
 
     const stream = client.messages.stream({
       model: "claude-sonnet-4-20250514",
