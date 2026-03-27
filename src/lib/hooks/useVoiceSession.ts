@@ -292,7 +292,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   });
 
   // ------------------------------------------------------------------
-  // START SESSION — HARDCODED GREETING, NO CLAUDE CALL
+  // START SESSION — STATIC AUDIO GREETING, ZERO API CALLS
   // ------------------------------------------------------------------
 
   const startSession = useCallback(
@@ -305,7 +305,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
       setLastError(null);
       setState('speaking');
 
-      // Warm up audio on user gesture
+      // Warm up AudioContext on user gesture
       try {
         if ('warmUp' in audioPlayer) {
           await (audioPlayer as { warmUp: () => Promise<void> }).warmUp();
@@ -314,41 +314,42 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         console.error('[VoiceSession] AudioContext warmup failed:', err);
       }
 
-      // Build greeting — NO Claude API call, just send straight to TTS
-      const name = firstName || 'there';
       const isReturning = (totalSessions || 0) > 0;
 
+      // Greeting text for transcript + Claude context (not sent to any API)
+      const name = firstName || 'there';
       const greetingText = isReturning
         ? `Welcome back ${name}. Want to pick up where we left off, or is there a topic you want to focus on today?`
         : `Hi ${name}, welcome to Echo. Shall I fire some questions at you to find your weak spots, or is there a specific topic you want to work on?`;
 
-      console.log('[VoiceSession] Playing hardcoded greeting (no Claude call):', greetingText);
+      // Static MP3 — no API call, plays instantly
+      const audioUrl = isReturning
+        ? '/audio/greeting-returning.mp3'
+        : '/audio/greeting-first.mp3';
 
-      // Add to transcript immediately
+      console.log('[VoiceSession] Playing static greeting:', audioUrl);
+
+      // Add to transcript and seed Claude context immediately
       setTranscript([{ speaker: 'examiner', text: greetingText, timestamp: Date.now() }]);
-
-      // Seed the message history so Claude has context for the next real exchange
       messagesRef.current = [{ role: 'assistant', content: greetingText }];
 
       try {
-        // Send ONLY to TTS — skip Claude entirely
-        await playTTS(greetingText);
+        // Play static file directly — zero network latency for audio
+        await audioPlayer.playUrl(audioUrl);
         console.log('[VoiceSession] Greeting playback complete, listening...');
-
-        if (isSessionActiveRef.current) {
-          setState('listening');
-          speechRecognition.startListening();
-        }
       } catch (err) {
-        const errorMsg = err instanceof Error ? err.message : 'Unknown error';
-        console.error('[VoiceSession] Greeting playback error:', errorMsg);
-        setLastError(errorMsg);
-
-        // Even if audio fails, still start listening
-        if (isSessionActiveRef.current) {
-          setState('listening');
-          speechRecognition.startListening();
+        // Static file failed — try TTS as fallback
+        console.warn('[VoiceSession] Static greeting failed, trying TTS fallback:', err);
+        try {
+          await playTTS(greetingText);
+        } catch {
+          console.error('[VoiceSession] TTS fallback also failed');
         }
+      }
+
+      if (isSessionActiveRef.current) {
+        setState('listening');
+        speechRecognition.startListening();
       }
     },
     [playTTS, speechRecognition, audioPlayer]

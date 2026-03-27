@@ -98,20 +98,17 @@ export default function SessionPage() {
       return;
     }
 
-    try {
-      const res = await fetch("/api/session/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticketType: ticketSlug }),
-      });
-      const data = await res.json();
-      if (data.sessionId) setSessionId(data.sessionId);
-    } catch (err) {
-      console.error("Failed to create session:", err);
-    }
+    // Fire session creation in background — don't block the greeting
+    fetch("/api/session/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ticketType: ticketSlug }),
+    })
+      .then((res) => res.json())
+      .then((data) => { if (data.sessionId) setSessionId(data.sessionId); })
+      .catch((err) => console.error("Failed to create session:", err));
 
     setHasStarted(true);
-    // Pass student name and session count so greeting is instant (no Claude call)
     const firstName = profile?.student?.full_name?.split(" ")[0];
     const totalSessions = profile?.student?.total_sessions || 0;
     startSession(ticketSlug, firstName, totalSessions);
