@@ -305,15 +305,6 @@ export function useVoiceSession(): UseVoiceSessionReturn {
       setLastError(null);
       setState('speaking');
 
-      // Warm up AudioContext on user gesture
-      try {
-        if ('warmUp' in audioPlayer) {
-          await (audioPlayer as { warmUp: () => Promise<void> }).warmUp();
-        }
-      } catch (err) {
-        console.error('[VoiceSession] AudioContext warmup failed:', err);
-      }
-
       const isReturning = (totalSessions || 0) > 0;
 
       // Greeting text for transcript + Claude context (not sent to any API)
@@ -322,29 +313,37 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         ? `Welcome back ${name}. Want to pick up where we left off, or is there a topic you want to focus on today?`
         : `Hi ${name}, welcome to Echo. Shall I fire some questions at you to find your weak spots, or is there a specific topic you want to work on?`;
 
-      // Static MP3 — no API call, plays instantly
+      // Add to transcript and seed Claude context immediately
+      setTranscript([{ speaker: 'examiner', text: greetingText, timestamp: Date.now() }]);
+      messagesRef.current = [{ role: 'assistant', content: greetingText }];
+
+      // Play static MP3 with bare Audio element — simplest possible approach
       const audioUrl = isReturning
         ? '/audio/greeting-returning.mp3'
         : '/audio/greeting-first.mp3';
 
       console.log('[VoiceSession] Playing static greeting:', audioUrl);
 
-      // Add to transcript and seed Claude context immediately
-      setTranscript([{ speaker: 'examiner', text: greetingText, timestamp: Date.now() }]);
-      messagesRef.current = [{ role: 'assistant', content: greetingText }];
-
       try {
-        // Play static file directly — zero network latency for audio
-        await audioPlayer.playUrl(audioUrl);
-        console.log('[VoiceSession] Greeting playback complete, listening...');
+        await new Promise<void>((resolve, reject) => {
+          const audio = new Audio(audioUrl);
+          audio.volume = 1;
+
+          // Hard 8-second timeout — if audio hasn't ended, move on
+          const timeout = setTimeout(() => {
+            console.warn('[VoiceSession] Greeting audio timed out after 8s');
+            audio.pause();
+            resolve();
+          }, 8000);
+
+          audio.onended = () => { clearTimeout(timeout); resolve(); };
+          audio.onerror = (e) => { clearTimeout(timeout); reject(e); };
+          audio.play().catch((err) => { clearTimeout(timeout); reject(err); });
+        });
+        console.log('[VoiceSession] Greeting playback complete');
       } catch (err) {
-        // Static file failed — try TTS as fallback
-        console.warn('[VoiceSession] Static greeting failed, trying TTS fallback:', err);
-        try {
-          await playTTS(greetingText);
-        } catch {
-          console.error('[VoiceSession] TTS fallback also failed');
-        }
+        console.warn('[VoiceSession] Static greeting failed:', err);
+        // Don't try TTS fallback — just move on to listening
       }
 
       if (isSessionActiveRef.current) {
@@ -352,7 +351,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         speechRecognition.startListening();
       }
     },
-    [playTTS, speechRecognition, audioPlayer]
+    [speechRecognition]
   );
 
   const endSession = useCallback(() => {
