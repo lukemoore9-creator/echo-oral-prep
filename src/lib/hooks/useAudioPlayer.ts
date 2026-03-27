@@ -8,6 +8,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface UseAudioPlayerReturn {
   play: (text: string) => Promise<void>;
+  playUrl: (url: string) => Promise<void>;
   stop: () => void;
   isPlaying: boolean;
   analyserNode: AnalyserNode | null;
@@ -178,6 +179,63 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
   );
 
   // ------------------------------------------------------------------
+  // Play audio from a URL (blob or static path) — no TTS API call
+  // ------------------------------------------------------------------
+
+  const playUrl = useCallback(
+    async (url: string): Promise<void> => {
+      console.log('[AudioPlayer] playUrl called:', url.substring(0, 60));
+      setIsPlaying(true);
+
+      try {
+        cleanupAudio();
+
+        const audioEl = new Audio(url);
+        audioElRef.current = audioEl;
+
+        const ctx = await ensureAudioContext();
+        const source = ctx.createMediaElementSource(audioEl);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 256;
+
+        source.connect(analyser);
+        analyser.connect(ctx.destination);
+
+        sourceRef.current = source;
+        analyserRef.current = analyser;
+        setAnalyserNode(analyser);
+
+        return new Promise<void>((resolve, reject) => {
+          audioEl.onended = () => {
+            console.log('[AudioPlayer] playUrl ended');
+            cleanupAudio();
+            setIsPlaying(false);
+            resolve();
+          };
+          audioEl.onerror = () => {
+            console.error('[AudioPlayer] playUrl error');
+            cleanupAudio();
+            setIsPlaying(false);
+            reject(new Error('Audio playback failed'));
+          };
+          audioEl.volume = 1;
+          audioEl.play().catch((err) => {
+            cleanupAudio();
+            setIsPlaying(false);
+            reject(err);
+          });
+        });
+      } catch (err) {
+        console.error('[AudioPlayer] playUrl failed:', err);
+        cleanupAudio();
+        setIsPlaying(false);
+        throw err;
+      }
+    },
+    [ensureAudioContext, cleanupAudio]
+  );
+
+  // ------------------------------------------------------------------
   // Stop playback
   // ------------------------------------------------------------------
 
@@ -223,6 +281,7 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
 
   const returnValue: UseAudioPlayerReturn & { warmUp: () => Promise<void> } = {
     play,
+    playUrl,
     stop,
     isPlaying,
     analyserNode,

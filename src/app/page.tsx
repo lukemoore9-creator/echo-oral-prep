@@ -90,18 +90,15 @@ export default function SessionPage() {
   };
 
   const handleStart = async () => {
-    console.log("[handleStart] Starting...");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach((t) => t.stop());
-      console.log("[handleStart] Mic access granted");
     } catch {
       setMicError(true);
       return;
     }
 
     try {
-      console.log("[handleStart] Calling /api/session/start...");
       const res = await fetch("/api/session/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -109,14 +106,15 @@ export default function SessionPage() {
       });
       const data = await res.json();
       if (data.sessionId) setSessionId(data.sessionId);
-      console.log("[handleStart] Session created:", data.sessionId);
     } catch (err) {
-      console.error("[handleStart] Failed to create session:", err);
+      console.error("Failed to create session:", err);
     }
 
-    console.log("[handleStart] Calling startSession...");
     setHasStarted(true);
-    startSession(ticketSlug);
+    // Pass student name and session count so greeting is instant (no Claude call)
+    const firstName = profile?.student?.full_name?.split(" ")[0];
+    const totalSessions = profile?.student?.total_sessions || 0;
+    startSession(ticketSlug, firstName, totalSessions);
   };
 
   const handleEnd = async () => {
@@ -153,18 +151,13 @@ export default function SessionPage() {
   if (profile && !isBetaUser(profile.student.email)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6">
-        <span className="text-2xl font-bold tracking-tight text-[#111111]">
-          Echo
-        </span>
-        <h1 className="mt-10 text-xl font-bold tracking-tight text-[#111111]">
-          Private Beta
-        </h1>
+        <span className="text-2xl font-bold tracking-tight text-[#111111]">Echo</span>
+        <h1 className="mt-10 text-xl font-bold tracking-tight text-[#111111]">Private Beta</h1>
         <p className="mt-3 max-w-md text-center text-[15px] leading-relaxed text-[#6B7280]">
           Echo is currently in private beta. We&apos;ll be opening up soon.
         </p>
         <p className="mt-6 text-sm text-[#9CA3AF]">
-          If you&apos;ve been invited, make sure you&apos;re signed in with the
-          correct email.
+          If you&apos;ve been invited, make sure you&apos;re signed in with the correct email.
         </p>
       </div>
     );
@@ -189,7 +182,6 @@ export default function SessionPage() {
           {ticketName}
         </h1>
         <p className="mt-3 max-w-md text-center text-[15px] leading-relaxed text-[#6B7280]">
-          Your AI examiner will ask questions relevant to this certificate.
           Speak clearly and answer as you would in a real oral exam.
         </p>
 
@@ -201,8 +193,7 @@ export default function SessionPage() {
           <div className="mt-8 flex max-w-md items-start gap-3 rounded-lg border border-[#FDE68A] bg-[#FEF3C7] px-4 py-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#D97706]" />
             <p className="text-sm text-[#92400E]">
-              Voice input requires Chrome or Edge. Please switch browsers for
-              the full experience.
+              Voice input requires Chrome or Edge. Please switch browsers for the full experience.
             </p>
           </div>
         )}
@@ -211,8 +202,7 @@ export default function SessionPage() {
           <div className="mt-8 flex max-w-md items-start gap-3 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#EF4444]" />
             <p className="text-sm text-[#991B1B]">
-              Microphone access is required. Please allow microphone permissions
-              and try again.
+              Microphone access is required. Please allow microphone permissions and try again.
             </p>
           </div>
         )}
@@ -240,9 +230,7 @@ export default function SessionPage() {
     <div className="fixed inset-0 z-50 flex flex-col bg-white">
       <header className="flex h-16 shrink-0 items-center justify-between border-b border-[#E5E7EB] px-6">
         <span className="text-lg font-bold tracking-tight text-[#111111]">Echo</span>
-        <span className="text-sm font-medium text-[#6B7280]">
-          {ticketName}
-        </span>
+        <span className="text-sm font-medium text-[#6B7280]">{ticketName}</span>
         <Button
           onClick={handleEnd}
           variant="destructive"
@@ -255,12 +243,8 @@ export default function SessionPage() {
 
       <main className="flex flex-1 flex-col items-center justify-center">
         <Orb state={state} analyserNode={analyserNode} micLevel={micLevel} />
-        <p className="mt-8 text-sm text-[#6B7280]">
-          {STATE_LABELS[state]}
-        </p>
-        <p className="mt-2 font-mono text-sm tabular-nums text-[#9CA3AF]">
-          {formatTime(elapsed)}
-        </p>
+        <p className="mt-8 text-sm text-[#6B7280]">{STATE_LABELS[state]}</p>
+        <p className="mt-2 font-mono text-sm tabular-nums text-[#9CA3AF]">{formatTime(elapsed)}</p>
         {lastError && (
           <div className="mt-6 flex max-w-md items-start gap-3 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#EF4444]" />
@@ -269,10 +253,7 @@ export default function SessionPage() {
         )}
       </main>
 
-      <TranscriptPanel
-        transcript={transcript}
-        interimTranscript={interimTranscript}
-      />
+      <TranscriptPanel transcript={transcript} interimTranscript={interimTranscript} />
 
       <div className="flex h-20 shrink-0 items-center justify-center border-t border-[#E5E7EB]">
         <button
@@ -284,11 +265,7 @@ export default function SessionPage() {
               : "border border-[#E5E7EB] bg-white text-[#6B7280] hover:bg-[#F7F8FA]"
           } disabled:cursor-not-allowed disabled:opacity-40`}
         >
-          {state === "listening" ? (
-            <Mic className="h-6 w-6" />
-          ) : (
-            <MicOff className="h-5 w-5" />
-          )}
+          {state === "listening" ? <Mic className="h-6 w-6" /> : <MicOff className="h-5 w-5" />}
         </button>
       </div>
     </div>

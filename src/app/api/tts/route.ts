@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "No text provided" }, { status: 400 });
   }
 
-  const voiceId = process.env.ELEVENLABS_VOICE_ID;
+  const voiceId = process.env.ELEVENLABS_VOICE_ID || "L0Dsvb3SLTyegXwtm47J";
   const apiKey = process.env.ELEVENLABS_API_KEY;
 
   if (!voiceId || !apiKey) {
