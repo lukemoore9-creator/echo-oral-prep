@@ -1,4 +1,4 @@
-# Helm AI
+# Echo — Oral Exam Prep
 
 AI-powered voice tutor for maritime oral exam preparation. Users select their exam ticket type, then have a voice conversation with an AI examiner that drills them on real exam questions.
 
@@ -15,8 +15,8 @@ The examiner adapts to your level, references specific regulations (COLREGS, SOL
 
 ```bash
 # Clone the repo
-git clone https://github.com/lukemoore9-creator/helm-ai.git
-cd helm-ai
+git clone https://github.com/lukemoore9-creator/echo-oral-prep.git
+cd echo-oral-prep
 
 # Install dependencies
 npm install
