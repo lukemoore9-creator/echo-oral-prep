@@ -10,7 +10,7 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "L0Dsvb3SLTyegXwtm47J";
+const VOICE_ID = process.env.ELEVENLABS_VOICE_ID || "jRAAK67SEFE9m7ci5DhD";
 const API_KEY = process.env.ELEVENLABS_API_KEY;
 
 if (!API_KEY) {
