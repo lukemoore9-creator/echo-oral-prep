@@ -59,9 +59,6 @@ function detectTopic(text: string): string | null {
 // Simple TTS: fetch /api/tts → blob → bare Audio element. No Web Audio API.
 // ---------------------------------------------------------------------------
 
-/** Fetch TTS audio and play it with a plain Audio element.
- *  No AudioContext, no AnalyserNode, no createMediaElementSource.
- *  Returns a promise that resolves when playback ends. */
 async function fetchAndPlayAudio(
   text: string,
   log?: (msg: string) => void,
@@ -95,7 +92,6 @@ async function fetchAndPlayAudio(
     audio.volume = 1;
     if (audioRef) audioRef.current = audio;
 
-    // Hard 15-second timeout
     const timeout = setTimeout(() => {
       l('audio timed out after 15s');
       audio.pause();
@@ -141,6 +137,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   const currentTopicRef = useRef<string | null>(null);
   const stateRef = useRef<SessionState>('idle');
   const isSessionActiveRef = useRef(false);
+  const isPausedRef = useRef(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const micStreamRef = useRef<MediaStream | null>(null);
@@ -185,14 +182,14 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   }, []);
 
   // ------------------------------------------------------------------
-  // Process user speech — SIMPLE: full text from Claude → TTS → play
+  // Process user speech
   // ------------------------------------------------------------------
 
   const processUserSpeechRef = useRef<(text: string) => void>(() => {});
 
   useEffect(() => {
     processUserSpeechRef.current = async (userText: string) => {
-      if (!userText.trim() || !isSessionActiveRef.current) return;
+      if (!userText.trim() || !isSessionActiveRef.current || isPausedRef.current) return;
 
       const t0 = Date.now();
       const log = (msg: string) => console.log(`[Voice] +${Date.now() - t0}ms ${msg}`);
@@ -225,7 +222,6 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         log(`chat response received, status: ${chatRes.status}`);
         if (!chatRes.ok) throw new Error(`Chat API returned ${chatRes.status}`);
 
-        // Read entire response as text
         const fullText = await chatRes.text();
         log(`full response text received: ${fullText.length} chars`);
 
@@ -239,12 +235,12 @@ export function useVoiceSession(): UseVoiceSessionReturn {
           { speaker: 'examiner', text: fullText, timestamp: Date.now() },
         ]);
 
-        // TTS: fetch audio blob → bare Audio element
         setState('speaking');
         await fetchAndPlayAudio(fullText, log, currentAudioRef);
         log('TTS playback complete');
 
-        if (isSessionActiveRef.current) {
+        // Only reopen mic if not paused and session still active
+        if (isSessionActiveRef.current && !isPausedRef.current) {
           setState('listening');
           speechRecognition.startListening();
           log('mic reopened, listening');
@@ -260,8 +256,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
           timestamp: Date.now(),
         }]);
 
-        // Skip TTS for error message — just go back to listening
-        if (isSessionActiveRef.current) {
+        if (isSessionActiveRef.current && !isPausedRef.current) {
           setState('listening');
           speechRecognition.startListening();
         }
@@ -282,7 +277,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   });
 
   // ------------------------------------------------------------------
-  // START SESSION — TTS greeting via bare fetch, static MP3 fallback
+  // START SESSION
   // ------------------------------------------------------------------
 
   const startSession = useCallback(
@@ -294,6 +289,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
       ticketTypeRef.current = ticketType;
       currentTopicRef.current = null;
       isSessionActiveRef.current = true;
+      isPausedRef.current = false;
       setTranscript([]);
       setLastError(null);
       setState('speaking');
@@ -304,7 +300,6 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         ? `Welcome back ${name}. Want to pick up where we left off, or is there a topic you want to focus on today?`
         : `Hi ${name}, welcome to Echo. Shall I fire some questions at you to find your weak spots, or is there a specific topic you want to work on?`;
 
-      // Add to transcript and seed Claude context immediately
       setTranscript([{ speaker: 'examiner', text: greetingText, timestamp: Date.now() }]);
       messagesRef.current = [{ role: 'assistant', content: greetingText }];
 
@@ -315,7 +310,6 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         log('greeting playback complete');
       } catch (err) {
         log('TTS greeting failed: ' + err + ', trying static MP3');
-        // Fallback: static MP3
         try {
           const audioUrl = isReturning ? '/audio/greeting-returning.mp3' : '/audio/greeting-first.mp3';
           const audio = new Audio(audioUrl);
@@ -331,7 +325,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         }
       }
 
-      if (isSessionActiveRef.current) {
+      if (isSessionActiveRef.current && !isPausedRef.current) {
         setState('listening');
         speechRecognition.startListening();
         log('listening started');
@@ -340,21 +334,13 @@ export function useVoiceSession(): UseVoiceSessionReturn {
     [speechRecognition]
   );
 
-  const endSession = useCallback(() => {
-    isSessionActiveRef.current = false;
-    speechRecognition.stopListening();
-    stopMicMeter();
-    if (currentAudioRef.current) {
-      currentAudioRef.current.pause();
-      currentAudioRef.current = null;
-    }
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-    }
-    setState('idle');
-  }, [speechRecognition, stopMicMeter]);
+  // ------------------------------------------------------------------
+  // PAUSE / RESUME (for trainer mode)
+  // ------------------------------------------------------------------
 
   const pauseSession = useCallback(() => {
+    console.log('[Voice] pauseSession called');
+    isPausedRef.current = true;
     speechRecognition.stopListening();
     stopMicMeter();
     if (currentAudioRef.current) {
@@ -368,17 +354,47 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   }, [speechRecognition, stopMicMeter]);
 
   const resumeSession = useCallback(() => {
-    if (isSessionActiveRef.current) {
-      setState('listening');
-      speechRecognition.startListening();
+    console.log('[Voice] resumeSession called, isSessionActive:', isSessionActiveRef.current);
+    if (!isSessionActiveRef.current) {
+      console.warn('[Voice] resumeSession: session not active, cannot resume');
+      return;
     }
-  }, [speechRecognition]);
+    isPausedRef.current = false;
+    // Small delay to let browser settle before restarting speech recognition
+    setTimeout(() => {
+      if (isSessionActiveRef.current && !isPausedRef.current) {
+        console.log('[Voice] resumeSession: restarting listening');
+        setState('listening');
+        startMicMeter();
+        speechRecognition.startListening();
+      }
+    }, 500);
+  }, [speechRecognition, startMicMeter]);
+
+  // ------------------------------------------------------------------
+  // END / TOGGLE
+  // ------------------------------------------------------------------
+
+  const endSession = useCallback(() => {
+    isSessionActiveRef.current = false;
+    isPausedRef.current = false;
+    speechRecognition.stopListening();
+    stopMicMeter();
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    setState('idle');
+  }, [speechRecognition, stopMicMeter]);
 
   const toggleMic = useCallback(() => {
     if (stateRef.current === 'listening') {
       speechRecognition.stopListening();
       stopMicMeter();
-    } else if (stateRef.current === 'idle' && isSessionActiveRef.current) {
+    } else if (stateRef.current === 'idle' && isSessionActiveRef.current && !isPausedRef.current) {
       setState('listening');
       speechRecognition.startListening();
     }
@@ -397,7 +413,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
     pauseSession,
     resumeSession,
     toggleMic,
-    analyserNode: null, // Orb animation disabled — Web Audio API was causing hangs
+    analyserNode: null,
     micLevel,
     browserSupported: speechRecognition.browserSupported,
     lastError,

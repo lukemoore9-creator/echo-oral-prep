@@ -2,7 +2,7 @@
   {
     "id": "safety-001",
     "question": "Man overboard. What are your actions as OOW?",
-    "ideal_answer": "Immediately release the lifebuoy and MOB marker with smoke and light. Sound the alarm — three long blasts on the whistle. Press the MOB button on the GPS to mark the position. Post a dedicated lookout to keep eyes on the person in the water and point at them continuously. Inform the master. Bring the vessel round — if under power, helm hard over towards the side the person went over to kick the stern away from them. Then execute the appropriate recovery manoeuvre — a Williamson turn gives the best return to the MOB position. Prepare the rescue boat and recovery equipment. Rig the scramble net or pilot ladder on the lee side. Broadcast a Pan Pan on VHF Channel 16 with position. Log everything — time of the event, actions taken, position. The priority is getting eyes on the person and getting back to them as fast as possible while preparing for recovery.",
+    "ideal_answer": "Immediately release the lifebuoy and MOB marker with smoke and light. Sound the alarm — three long blasts on the whistle. Press the MOB button on the GPS to mark the position. Post a dedicated lookout to keep eyes on the person in the water and point at them continuously. Inform the master. Bring the vessel round — if under power, helm hard over towards the side the person went over to kick the stern away from them. Then execute the appropriate recovery manoeuvre — a Williamson turn gives the best return to the MOB position. Prepare the rescue boat and recovery equipment. Rig the scramble net or pilot ladder on the lee side. Broadcast a Pan Pan on VHF Channel 16 with position. Log everything — time of the event, actions taken, position.",
     "key_points": [
       "Release lifebuoy and MOB marker immediately",
       "Sound alarm — three long blasts",
@@ -25,44 +25,40 @@
       "wants_rule_number_first": false,
       "wants_practical_examples": true,
       "wants_verbatim_rule_text": false,
-      "style_notes": "Examiner specifically wanted practical answer, not flashcard. When candidate gave a textbook answer, examiner pushed for 'what would you actually do' and discussed it at length."
+      "style_notes": "Examiner wanted practical answer, not flashcard."
     },
     "follow_ups": [
       "What recovery manoeuvres do you know?",
       "What if the person went over at night?",
-      "How do you recover a casualty from the water?",
-      "What equipment would you prepare?"
+      "How do you recover a casualty from the water?"
     ],
     "common_mistakes": [
       "Giving textbook list without practical context",
       "Forgetting to mark position immediately",
-      "Not mentioning the dedicated lookout",
-      "Not knowing recovery manoeuvre names"
+      "Not mentioning the dedicated lookout"
     ],
     "difficulty": 3,
     "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
-    "examiner_notes": "From real exam: examiner gave flashcard answer a hard time. Wanted genuine practical response about what the candidate would physically do, not recitation. Discussed MOB for extended period.",
-    "related_topics": [],
+    "examiner_notes": "Examiner pushed for practical response, not recitation.",
+    "related_topics": ["navigation"],
     "visual": null,
     "visual_instruction": null
   },
   {
     "id": "safety-002",
     "question": "Talk me through Permit to Work — what is it, how does it work, and where do you find the information?",
-    "ideal_answer": "A Permit to Work is a formal documented system that ensures potentially hazardous work is properly assessed, controlled, and authorised before it starts. The process starts with a risk assessment — identifying the hazards, who might be affected, and what controls are needed. The permit is raised by the person requesting the work, checked and approved by a competent person — usually the master or chief officer. It specifies the work to be done, the location, the time period, the precautions required, and the PPE needed. When the work is complete, the permit is signed off and returned. You'll find the PTW procedures in the vessel's Safety Management System, which is part of the ISM Code requirements. COSWP — the Code of Safe Working Practices for Merchant Seamen — is the key reference for safe working procedures on UK vessels.",
+    "ideal_answer": "A Permit to Work is a formal documented system that ensures hazardous work is properly assessed, controlled, and authorised before it starts. It starts with a risk assessment. The permit is raised by the requester, approved by a competent person — usually the master or chief officer. It specifies the work, location, time period, precautions, and PPE. When complete, the permit is signed off and returned. Found in the vessel's Safety Management System under the ISM Code. COSWP is the key UK reference.",
     "key_points": [
       "Formal documented authorisation system",
       "Risk assessment before work begins",
-      "Identifies hazards, controls, PPE required",
       "Raised by requester, approved by competent person",
       "Time-limited and location-specific",
-      "Found in vessel's Safety Management System (ISM)",
+      "Found in vessel's SMS (ISM Code)",
       "COSWP — Code of Safe Working Practices"
     ],
     "unacceptable_answers": [
       "Not knowing what a PTW is",
       "Not mentioning risk assessment",
-      "Not knowing where to find the procedures",
       "Not referencing COSWP"
     ],
     "follow_ups": [
@@ -72,8 +68,52 @@
     ],
     "difficulty": 2,
     "source_examiner": "Unknown — OOW 3000GT Yacht exam, Sep 2024",
-    "examiner_notes": "From real exam: examiner asked about PTW, risk assessment, and specifically COSWP. Wanted to know the candidate knew where to find the information, not just the procedure.",
-    "related_topics": [],
+    "examiner_notes": "Examiner wanted to know candidate knew where to find the procedures.",
+    "related_topics": ["maritime-law"],
+    "visual": null,
+    "visual_instruction": null
+  },
+  {
+    "id": "safety-003",
+    "question": "What is the general alarm signal and what does it mean? What about abandon ship?",
+    "ideal_answer": "The general alarm is a continuous ringing of the alarm bell, or seven short blasts followed by one long blast on the ship's whistle. When the general alarm sounds, all crew proceed to their muster stations as per the muster list. It does NOT mean abandon ship. Abandon ship is ONLY given as a verbal command by the Master. There is no dedicated alarm signal for abandon ship. Only the Master can make the decision to abandon the vessel, and they communicate this verbally. No other person on board has the authority to order abandon ship. When the Master gives the verbal order to abandon ship, crew proceed from their muster stations to their assigned lifeboat or liferaft stations.",
+    "key_points": [
+      "General alarm: continuous bell OR 7 short + 1 long blast on whistle",
+      "General alarm means go to muster stations — NOT abandon ship",
+      "Abandon ship is ONLY a verbal command from the Master",
+      "There is NO alarm signal for abandon ship",
+      "ONLY the Master can order abandon ship — no one else",
+      "After abandon ship order, crew go from muster stations to survival craft stations"
+    ],
+    "unacceptable_answers": [
+      "Saying general alarm means abandon ship — this is CRITICALLY WRONG",
+      "Saying there is an abandon ship alarm signal",
+      "Saying anyone other than the Master can order abandon ship",
+      "Confusing general alarm with fire alarm or MOB alarm"
+    ],
+    "examiner_preferences": {
+      "wants_rule_number_first": false,
+      "wants_practical_examples": true,
+      "wants_verbatim_rule_text": false,
+      "style_notes": "This is a pass/fail question. Getting the general alarm vs abandon ship distinction wrong would seriously concern an examiner."
+    },
+    "follow_ups": [
+      "Who can order abandon ship?",
+      "What do you do when you hear the general alarm?",
+      "What is the fire alarm signal?",
+      "Where do you find your muster station assignment?",
+      "What happens between general alarm and abandon ship — what is the sequence?"
+    ],
+    "common_mistakes": [
+      "CONFUSING GENERAL ALARM WITH ABANDON SHIP — most common and most dangerous mistake",
+      "Thinking there is a specific alarm for abandon ship",
+      "Not knowing that only the Master can order abandon ship",
+      "Not knowing the general alarm signal (7 short + 1 long)"
+    ],
+    "difficulty": 1,
+    "source_examiner": "Echo trainer correction — March 2026",
+    "examiner_notes": "CRITICAL SAFETY QUESTION. Echo AI previously told a student that general alarm means abandon ship. This is dangerously wrong. This correction must be enforced in every session. If a student confuses these, correct them immediately and firmly.",
+    "related_topics": ["solas"],
     "visual": null,
     "visual_instruction": null
   }
