@@ -333,8 +333,9 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   // ------------------------------------------------------------------
 
   const pauseSession = useCallback(() => {
-    console.log('[Voice] pauseSession called');
+    console.log('[Voice] pauseSession: mic fully stopped');
     isPausedRef.current = true;
+    speechRecognition.disableAutoRestart();
     speechRecognition.stopListening();
     stopMicMeter();
     if (currentAudioRef.current) {
@@ -354,6 +355,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
       return;
     }
     isPausedRef.current = false;
+    speechRecognition.enableAutoRestart();
     setTimeout(() => {
       if (isSessionActiveRef.current && !isPausedRef.current) {
         console.log('[Voice] resumeSession: restarting listening');

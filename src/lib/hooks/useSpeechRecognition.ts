@@ -50,6 +50,8 @@ interface UseSpeechRecognitionOptions {
 interface UseSpeechRecognitionReturn {
   startListening: () => void;
   stopListening: () => void;
+  disableAutoRestart: () => void;
+  enableAutoRestart: () => void;
   interimTranscript: string;
   browserSupported: boolean;
 }
@@ -74,6 +76,7 @@ export function useSpeechRecognition(
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const finalTranscriptAccumRef = useRef('');
+  const autoRestartRef = useRef(true);
 
   // Stable refs for callbacks so the recognition handlers always see the latest
   const onSpeechCompleteRef = useRef(onSpeechComplete);
@@ -187,10 +190,11 @@ export function useSpeechRecognition(
         if (finalText) {
           console.log('[SpeechRecognition] Final text:', finalText.substring(0, 50) + '...');
           onSpeechCompleteRef.current(finalText);
-        } else {
-          // No speech detected -- restart automatically
+        } else if (autoRestartRef.current) {
           console.log('[SpeechRecognition] No speech detected, restarting');
           startListeningRef.current();
+        } else {
+          console.log('[SpeechRecognition] No speech detected, auto-restart disabled');
         }
       };
 
@@ -203,6 +207,14 @@ export function useSpeechRecognition(
       }
     };
   }, [browserSupported, lang, silenceTimeout, clearSilenceTimer]);
+
+  const disableAutoRestart = useCallback(() => {
+    autoRestartRef.current = false;
+  }, []);
+
+  const enableAutoRestart = useCallback(() => {
+    autoRestartRef.current = true;
+  }, []);
 
   const stopListening = useCallback(() => {
     clearSilenceTimer();
@@ -227,6 +239,8 @@ export function useSpeechRecognition(
   return {
     startListening,
     stopListening,
+    disableAutoRestart,
+    enableAutoRestart,
     interimTranscript,
     browserSupported,
   };
