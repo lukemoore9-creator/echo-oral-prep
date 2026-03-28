@@ -4,10 +4,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import type { SessionState, TranscriptEntry } from '@/lib/types';
 import { useSpeechRecognition } from './useSpeechRecognition';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -27,10 +23,6 @@ interface UseVoiceSessionReturn {
   browserSupported: boolean;
   lastError: string | null;
 }
-
-// ---------------------------------------------------------------------------
-// Topic detection
-// ---------------------------------------------------------------------------
 
 const TOPIC_KEYWORDS: Record<string, string> = {
   'colreg': 'colregs', 'rule ': 'colregs', 'collision': 'colregs',
@@ -56,7 +48,8 @@ function detectTopic(text: string): string | null {
 }
 
 // ---------------------------------------------------------------------------
-// Simple TTS: fetch /api/tts → blob → bare Audio element. No Web Audio API.
+// TTS: fetch /api/tts → blob → bare Audio element
+// TIMEOUT INCREASED TO 30s to prevent cutting off long responses
 // ---------------------------------------------------------------------------
 
 async function fetchAndPlayAudio(
@@ -92,17 +85,18 @@ async function fetchAndPlayAudio(
     audio.volume = 1;
     if (audioRef) audioRef.current = audio;
 
+    // 30-second timeout — long enough for any reasonable response
     const timeout = setTimeout(() => {
-      l('audio timed out after 15s');
+      l('audio timed out after 30s');
       audio.pause();
       URL.revokeObjectURL(blobUrl);
       resolve();
-    }, 15000);
+    }, 30000);
 
     audio.onended = () => {
       clearTimeout(timeout);
       URL.revokeObjectURL(blobUrl);
-      l('audio playback ended');
+      l('audio playback ended naturally');
       resolve();
     };
 
@@ -147,7 +141,6 @@ export function useVoiceSession(): UseVoiceSessionReturn {
 
   useEffect(() => { stateRef.current = state; }, [state]);
 
-  // Mic metering
   const startMicMeter = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -239,7 +232,6 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         await fetchAndPlayAudio(fullText, log, currentAudioRef);
         log('TTS playback complete');
 
-        // Only reopen mic if not paused and session still active
         if (isSessionActiveRef.current && !isPausedRef.current) {
           setState('listening');
           speechRecognition.startListening();
@@ -269,11 +261,13 @@ export function useVoiceSession(): UseVoiceSessionReturn {
     processUserSpeechRef.current(text);
   }, []);
 
+  // SILENCE TIMEOUT: 2500ms — gives the user time to think and complete their answer
+  // This is a real exam conversation, not a command interface
   const speechRecognition = useSpeechRecognition({
     onSpeechComplete: handleSpeechComplete,
     onListeningStart: startMicMeter,
     lang: 'en-GB',
-    silenceTimeout: 1200,
+    silenceTimeout: 2500,
   });
 
   // ------------------------------------------------------------------
@@ -335,7 +329,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   );
 
   // ------------------------------------------------------------------
-  // PAUSE / RESUME (for trainer mode)
+  // PAUSE / RESUME
   // ------------------------------------------------------------------
 
   const pauseSession = useCallback(() => {
@@ -360,7 +354,6 @@ export function useVoiceSession(): UseVoiceSessionReturn {
       return;
     }
     isPausedRef.current = false;
-    // Small delay to let browser settle before restarting speech recognition
     setTimeout(() => {
       if (isSessionActiveRef.current && !isPausedRef.current) {
         console.log('[Voice] resumeSession: restarting listening');
