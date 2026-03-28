@@ -100,13 +100,12 @@ STUDENT CONTEXT:
         corrections;
     }
 
-    // Use Haiku for opening greeting (fast TTFT), Sonnet for exam questions
-    const model = isOpening ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-20250514";
+    const model = "claude-haiku-4-5-20251001";
     console.log(`[Chat] model: ${model}, prompt: ${systemPrompt.length} chars, topic: ${effectiveTopic || 'none'}, setup: ${Date.now() - t0}ms`);
 
     const stream = client.messages.stream({
       model,
-      max_tokens: isOpening ? 100 : 250,
+      max_tokens: 150,
       system: systemPrompt,
       messages,
     });
