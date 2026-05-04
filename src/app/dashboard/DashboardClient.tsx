@@ -22,7 +22,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BlurFade } from "@/components/ui/blur-fade";
-import { ticketDisplayName } from "@/lib/utils";
+import { getTicketName } from "@/lib/tickets";
 
 interface Session {
   id: string;
@@ -98,7 +98,7 @@ export function DashboardClient({
                 Dashboard
               </h1>
               <p className="mt-1 text-sm text-[#6B7280]">
-                {student.full_name} &mdash; {ticketDisplayName(student.ticket_type)}
+                {student.full_name} &mdash; {getTicketName(student.ticket_type)}
               </p>
             </div>
             <Link href="/">
