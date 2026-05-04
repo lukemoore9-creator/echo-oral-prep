@@ -5,33 +5,16 @@ import { Mic, MicOff, PhoneOff, AlertTriangle, Check, Flag } from "lucide-react"
 import { useUser } from "@clerk/nextjs";
 import { Orb } from "@/components/voice/Orb";
 import { useVoiceSession } from "@/lib/hooks/useVoiceSession";
-import { isBetaUser } from "@/lib/beta-access";
 import { Button } from "@/components/ui/button";
-import { ticketDisplayName } from "@/lib/utils";
+import { TRAINER_TICKETS, getTicketName } from "@/lib/tickets";
+import { isTrainer } from "@/lib/access";
 import type { TranscriptEntry } from "@/lib/types";
 
 const STATE_LABELS: Record<string, string> = {
-  idle: "Ready to start",
-  listening: "Listening...",
-  processing: "Thinking...",
-  speaking: "Speaking...",
-};
-
-const TICKET_NAMES: Record<string, string> = {
-  'oow-unlimited': 'OOW Unlimited',
-  'oow-nearcoastal': 'OOW Near Coastal',
-  'master-200gt': 'Master <200GT',
-  'master-500gt': 'Master <500GT',
-  'master-3000gt': 'Master <3000GT',
-  'master-unlimited': 'Master Unlimited',
-  'ym-offshore': 'Yacht Master Offshore',
-  'ym-ocean': 'Yacht Master Ocean',
-  'mate-200gt-yacht': 'Mate <200GT Yacht',
-  'master-200gt-yacht': 'Master <200GT Yacht',
-  'master-500gt-yacht': 'Master <500GT Yacht',
-  'master-3000gt-yacht': 'Master <3000GT Yacht',
-  'engineer-oow': 'Engineer OOW',
-  'eto': 'ETO',
+  idle: "Standing by",
+  listening: "Listening",
+  processing: "",
+  speaking: "",
 };
 
 interface StudentProfile {
@@ -93,14 +76,14 @@ function CorrectionButtons({
 
   if (status === "saved") {
     return (
-      <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#16A34A]">
+      <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-pass">
         <Check className="h-3 w-3" /> Saved
       </span>
     );
   }
   if (status === "flagged") {
     return (
-      <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[#EF4444]">
+      <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-refer">
         <Flag className="h-3 w-3" /> Flagged
       </span>
     );
@@ -111,13 +94,13 @@ function CorrectionButtons({
       <div className="mt-2 flex gap-2">
         <button
           onClick={() => { onPause?.(); setMode("correct"); }}
-          className="inline-flex items-center gap-1 rounded border border-[#2563EB] px-2 py-1 text-xs font-medium text-[#2563EB] hover:bg-[#EFF6FF] transition-colors"
+          className="inline-flex items-center gap-1 rounded border border-chart-green px-2 py-1 text-xs font-medium text-chart-green hover:bg-paper-warm transition-colors"
         >
           <Check className="h-3 w-3" /> Correct
         </button>
         <button
           onClick={() => { onPause?.(); setMode("flag"); }}
-          className="inline-flex items-center gap-1 rounded border border-[#EF4444] px-2 py-1 text-xs font-medium text-[#EF4444] hover:bg-[#FEF2F2] transition-colors"
+          className="inline-flex items-center gap-1 rounded border border-refer px-2 py-1 text-xs font-medium text-refer hover:bg-paper-warm transition-colors"
         >
           <Flag className="h-3 w-3" /> Flag
         </button>
@@ -131,7 +114,7 @@ function CorrectionButtons({
         value={text}
         onChange={(e) => setText(e.target.value)}
         placeholder={mode === "correct" ? "What should the examiner say instead?" : "What's wrong with this?"}
-        className="w-full rounded border border-[#E5E7EB] px-3 py-2 text-sm text-[#111111] placeholder:text-[#9CA3AF] focus:border-[#2563EB] focus:outline-none"
+        className="w-full rounded border border-rule px-3 py-2 text-sm text-ink placeholder:text-ink-muted focus:border-chart-green focus:outline-none"
         rows={2}
         autoFocus
       />
@@ -140,14 +123,14 @@ function CorrectionButtons({
           onClick={() => submit(mode === "correct" ? "correction" : "flag")}
           disabled={!text.trim() || status === "saving"}
           className={`rounded px-3 py-1 text-xs font-medium text-white transition-colors disabled:opacity-40 ${
-            mode === "correct" ? "bg-[#2563EB] hover:bg-[#1D4ED8]" : "bg-[#EF4444] hover:bg-[#DC2626]"
+            mode === "correct" ? "bg-chart-green hover:bg-ink" : "bg-refer hover:bg-ink"
           }`}
         >
           {status === "saving" ? "Saving..." : mode === "correct" ? "Save Correction" : "Save Flag"}
         </button>
         <button
           onClick={() => { setMode("idle"); setText(""); onSaved(); }}
-          className="rounded px-3 py-1 text-xs font-medium text-[#6B7280] hover:text-[#111111]"
+          className="rounded px-3 py-1 text-xs font-medium text-ink-muted hover:text-ink"
         >
           Cancel
         </button>
@@ -184,12 +167,12 @@ function TrainerTranscriptPanel({
   return (
     <div
       ref={scrollRef}
-      className="overflow-y-auto border-t border-[#E5E7EB]"
-      style={{ maxHeight: 320, scrollbarWidth: "thin", scrollbarColor: "#D1D5DB transparent" }}
+      className="overflow-y-auto border-t border-rule"
+      style={{ maxHeight: 320, scrollbarWidth: "thin", scrollbarColor: "#B8B2A1 transparent" }}
     >
       <div className="mx-auto max-w-2xl space-y-4 px-6 py-5">
         {transcript.length === 0 && !interimTranscript && (
-          <p className="py-6 text-center text-sm text-[#9CA3AF]">
+          <p className="py-6 text-center text-sm text-ink-muted">
             Your conversation will appear here...
           </p>
         )}
@@ -199,12 +182,12 @@ function TrainerTranscriptPanel({
           return (
             <div
               key={`${msg.timestamp}-${index}`}
-              className={`rounded-lg px-4 py-3 ${isExaminer ? "bg-[#F7F8FA]" : "bg-white"}`}
+              className={`rounded-lg px-4 py-3 ${isExaminer ? "bg-paper-warm" : "bg-paper"}`}
             >
-              <span className={`mb-1 block text-xs font-medium ${isExaminer ? "text-[#111111]" : "text-[#6B7280]"}`}>
+              <span className={`mb-1 block text-xs font-medium ${isExaminer ? "text-ink" : "text-ink-muted"}`}>
                 {isExaminer ? "Examiner" : "You"}
               </span>
-              <p className={`text-[15px] leading-[1.6] ${isExaminer ? "text-[#111111]" : "text-[#374151]"}`}>
+              <p className={`text-[15px] leading-[1.6] ${isExaminer ? "text-ink" : "text-ink-soft"}`}>
                 {msg.text}
               </p>
               {isExaminer && (
@@ -215,9 +198,9 @@ function TrainerTranscriptPanel({
         })}
 
         {interimTranscript && (
-          <div className="rounded-lg bg-white px-4 py-3">
-            <span className="mb-1 block text-xs font-medium text-[#9CA3AF]">You</span>
-            <p className="text-[15px] leading-[1.6] italic text-[#9CA3AF]">{interimTranscript}</p>
+          <div className="rounded-lg bg-paper px-4 py-3">
+            <span className="mb-1 block text-xs font-medium text-ink-muted">You</span>
+            <p className="text-[15px] leading-[1.6] italic text-ink-muted">{interimTranscript}</p>
           </div>
         )}
       </div>
@@ -286,7 +269,7 @@ export default function TrainerPage() {
   }, [hasStarted]);
 
   const ticketSlug = profile?.student?.ticket_type || "oow-unlimited";
-  const ticketName = ticketDisplayName(ticketSlug);
+  const ticketName = getTicketName(ticketSlug);
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60);
@@ -308,24 +291,24 @@ export default function TrainerPage() {
 
   const handleEnd = () => {
     endSession();
-    window.location.href = "/dashboard";
+    window.location.href = "/home";
   };
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <p className="text-sm text-[#6B7280]">Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-paper">
+        <p className="text-sm text-ink-muted">Loading...</p>
       </div>
     );
   }
 
   // Access gate
   const email = user?.emailAddresses?.[0]?.emailAddress;
-  if (!isBetaUser(email)) {
+  if (!isTrainer(email)) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6">
-        <h1 className="text-xl font-bold text-[#111111]">Access Denied</h1>
-        <p className="mt-3 text-[15px] text-[#6B7280]">Trainer mode is restricted.</p>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-6">
+        <h1 className="text-xl font-bold text-ink">Access Denied</h1>
+        <p className="mt-3 text-[15px] text-ink-muted">Trainer mode is restricted.</p>
       </div>
     );
   }
@@ -333,15 +316,23 @@ export default function TrainerPage() {
   // Pre-start view
   if (!hasStarted) {
     return (
-      <div className="flex min-h-[calc(100vh-64px)] flex-col items-center justify-center bg-white px-6">
-        <div className="mb-8">
-          <Orb state="idle" />
+      <div className="flex min-h-[calc(100vh-64px)] flex-col items-center justify-center bg-paper px-6">
+        {/* Brass banner */}
+        <div
+          className="fixed inset-x-0 top-0 z-50 flex h-8 items-center justify-center font-mono text-[11px] uppercase tracking-[0.14em]"
+          style={{ backgroundColor: "var(--color-brass)", color: "var(--color-paper)" }}
+        >
+          Internal &middot; Trainer Access &middot; {email}
         </div>
 
-        <h1 className="text-2xl font-bold tracking-tight text-[#111111]">
+        <div className="mb-8">
+          <Orb state="idle" size={240} />
+        </div>
+
+        <h1 className="text-2xl font-bold tracking-tight text-ink">
           Trainer Mode
         </h1>
-        <p className="mt-3 max-w-md text-center text-[15px] leading-relaxed text-[#6B7280]">
+        <p className="mt-3 max-w-md text-center text-[15px] leading-relaxed text-ink-muted">
           Run a session and correct or flag examiner responses. Your corrections feed back into the AI.
         </p>
 
@@ -351,10 +342,10 @@ export default function TrainerPage() {
             setCurrentTicket(e.target.value);
             setTicketType(e.target.value);
           }}
-          className="mt-5 rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5 text-sm font-medium text-[#6B7280] focus:border-[#2563EB] focus:outline-none"
+          className="mt-5 rounded-lg border border-rule bg-paper px-3 py-1.5 text-sm font-medium text-ink-muted focus:border-chart-green focus:outline-none"
         >
-          {Object.entries(TICKET_NAMES).map(([slug, name]) => (
-            <option key={slug} value={slug}>{name}</option>
+          {TRAINER_TICKETS.map((t) => (
+            <option key={t.slug} value={t.slug}>{t.name}</option>
           ))}
         </select>
 
@@ -366,8 +357,8 @@ export default function TrainerPage() {
               onClick={() => { setAiMode(m); setAiModeHook(m); }}
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                 aiMode === m
-                  ? 'bg-[#2563EB] text-white'
-                  : 'border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F7F8FA]'
+                  ? 'bg-chart-green text-white'
+                  : 'border border-rule text-ink-muted hover:bg-paper-warm'
               }`}
             >
               {m.charAt(0).toUpperCase() + m.slice(1)}
@@ -376,25 +367,25 @@ export default function TrainerPage() {
         </div>
 
         {!browserSupported && (
-          <div className="mt-8 flex max-w-md items-start gap-3 rounded-lg border border-[#FDE68A] bg-[#FEF3C7] px-4 py-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#D97706]" />
-            <p className="text-sm text-[#92400E]">Voice input requires Chrome or Edge.</p>
+          <div className="mt-8 flex max-w-md items-start gap-3 rounded-lg border border-rule bg-paper-warm px-4 py-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#9A7B3A]" />
+            <p className="text-sm text-ink-soft">Voice input requires Chrome or Edge.</p>
           </div>
         )}
 
         {micError && (
-          <div className="mt-8 flex max-w-md items-start gap-3 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#EF4444]" />
-            <p className="text-sm text-[#991B1B]">Microphone access is required.</p>
+          <div className="mt-8 flex max-w-md items-start gap-3 rounded-lg border border-rule bg-paper-warm px-4 py-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-refer" />
+            <p className="text-sm text-refer">Microphone access is required.</p>
           </div>
         )}
 
         <Button
           onClick={handleStart}
-          className="mt-10 h-[44px] gap-2 rounded-lg bg-[#2563EB] px-8 text-[15px] font-semibold text-white hover:bg-[#1D4ED8] active:scale-[0.98]"
+          className="mt-10 h-[44px] gap-2 rounded-lg bg-chart-green px-8 text-[15px] font-semibold text-white hover:bg-ink active:scale-[0.98]"
         >
           <Mic className="h-5 w-5" />
-          Start Trainer Session
+          Begin session
         </Button>
       </div>
     );
@@ -402,10 +393,17 @@ export default function TrainerPage() {
 
   // Active session
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
-      <header className="flex h-16 shrink-0 items-center justify-between border-b border-[#E5E7EB] px-6">
-        <span className="text-lg font-bold tracking-tight text-[#111111]">
-          Echo <span className="text-sm font-normal text-[#6B7280]">Trainer</span>
+    <div className="fixed inset-0 z-50 flex flex-col bg-paper">
+      {/* Brass banner */}
+      <div
+        className="flex h-8 shrink-0 items-center justify-center font-mono text-[11px] uppercase tracking-[0.14em]"
+        style={{ backgroundColor: "var(--color-brass)", color: "var(--color-paper)" }}
+      >
+        Internal &middot; Trainer Access &middot; {email}
+      </div>
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-rule px-6">
+        <span className="text-lg font-serif font-bold tracking-tight text-ink">
+          Echo <span className="text-sm font-normal font-sans text-ink-muted">Trainer</span>
         </span>
         <select
           value={currentTicket}
@@ -413,32 +411,32 @@ export default function TrainerPage() {
             setCurrentTicket(e.target.value);
             setTicketType(e.target.value);
           }}
-          className="rounded-lg border border-[#E5E7EB] bg-white px-3 py-1.5 text-sm font-medium text-[#6B7280] focus:border-[#2563EB] focus:outline-none"
+          className="rounded-lg border border-rule bg-paper px-3 py-1.5 text-sm font-medium text-ink-muted focus:border-chart-green focus:outline-none"
         >
-          {Object.entries(TICKET_NAMES).map(([slug, name]) => (
-            <option key={slug} value={slug}>{name}</option>
+          {TRAINER_TICKETS.map((t) => (
+            <option key={t.slug} value={t.slug}>{t.name}</option>
           ))}
         </select>
         <Button
           onClick={handleEnd}
           variant="destructive"
-          className="h-9 gap-2 rounded-lg bg-[#EF4444] px-4 text-sm font-medium text-white hover:bg-[#DC2626]"
+          className="h-9 gap-2 rounded-lg bg-refer px-4 text-sm font-medium text-white hover:bg-ink"
         >
           <PhoneOff className="h-4 w-4" />
-          End
+          Stand down
         </Button>
       </header>
 
-      {/* ── Mode selector ── */}
-      <div className="flex h-10 shrink-0 items-center justify-center gap-1 border-b border-[#E5E7EB]">
+      {/* -- Mode selector -- */}
+      <div className="flex h-10 shrink-0 items-center justify-center gap-1 border-b border-rule">
         {(['trainer', 'tutor', 'examiner'] as const).map((m) => (
           <button
             key={m}
             onClick={() => { setAiMode(m); setAiModeHook(m); }}
             className={`rounded-full px-4 py-1 text-xs font-medium transition-colors ${
               aiMode === m
-                ? 'bg-[#2563EB] text-white'
-                : 'border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F7F8FA]'
+                ? 'bg-chart-green text-white'
+                : 'border border-rule text-ink-muted hover:bg-paper-warm'
             }`}
           >
             {m.charAt(0).toUpperCase() + m.slice(1)}
@@ -447,15 +445,15 @@ export default function TrainerPage() {
       </div>
 
       <main className="flex flex-1 flex-col items-center justify-center">
-        <Orb state={sessionPaused ? "idle" : state} analyserNode={analyserNode} micLevel={micLevel} />
-        <p className="mt-8 text-sm text-[#6B7280]">
+        <Orb state={sessionPaused ? "idle" : state} analyserNode={analyserNode} micLevel={micLevel} size={240} />
+        <p className="mt-8 text-sm text-ink-muted">
           {sessionPaused ? "Session paused — submit your correction to continue" : STATE_LABELS[state]}
         </p>
-        <p className="mt-2 font-mono text-sm tabular-nums text-[#9CA3AF]">{formatTime(elapsed)}</p>
+        <p className="mt-2 font-mono text-sm tabular-nums text-ink-muted">{formatTime(elapsed)}</p>
         {lastError && (
-          <div className="mt-6 flex max-w-md items-start gap-3 rounded-lg border border-[#FECACA] bg-[#FEF2F2] px-4 py-3">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[#EF4444]" />
-            <p className="text-sm text-[#991B1B]">{lastError}</p>
+          <div className="mt-6 flex max-w-md items-start gap-3 rounded-lg border border-rule bg-paper-warm px-4 py-3">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-refer" />
+            <p className="text-sm text-refer">{lastError}</p>
           </div>
         )}
       </main>
@@ -469,23 +467,23 @@ export default function TrainerPage() {
       />
 
       {sessionPaused ? (
-        <div className="flex shrink-0 items-center justify-center border-t border-[#E5E7EB] px-6 py-4">
+        <div className="flex shrink-0 items-center justify-center border-t border-rule px-6 py-4">
           <Button
             onClick={() => { setSessionPaused(false); resumeSession(); }}
-            className="h-[44px] w-full max-w-md gap-2 rounded-lg bg-[#2563EB] text-[15px] font-semibold text-white hover:bg-[#1D4ED8] active:scale-[0.98]"
+            className="h-[44px] w-full max-w-md gap-2 rounded-lg bg-chart-green text-[15px] font-semibold text-white hover:bg-ink active:scale-[0.98]"
           >
-            Continue Session
+            Resume
           </Button>
         </div>
       ) : (
-        <div className="flex h-20 shrink-0 items-center justify-center border-t border-[#E5E7EB]">
+        <div className="flex h-20 shrink-0 items-center justify-center border-t border-rule">
           <button
             onClick={toggleMic}
             disabled={state === "processing" || state === "speaking"}
             className={`flex h-14 w-14 items-center justify-center rounded-full transition-all ${
               state === "listening"
-                ? "bg-[#2563EB] text-white shadow-lg shadow-[#2563EB]/25"
-                : "border border-[#E5E7EB] bg-white text-[#6B7280] hover:bg-[#F7F8FA]"
+                ? "bg-chart-green text-white shadow-lg shadow-chart-green/25"
+                : "border border-rule bg-paper text-ink-muted hover:bg-paper-warm"
             } disabled:cursor-not-allowed disabled:opacity-40`}
           >
             {state === "listening" ? <Mic className="h-6 w-6" /> : <MicOff className="h-5 w-5" />}

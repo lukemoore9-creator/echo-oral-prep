@@ -27,16 +27,16 @@ export function TranscriptPanel({
   return (
     <div
       ref={scrollRef}
-      className="overflow-y-auto border-t border-[#E5E7EB]"
+      className="overflow-y-auto border-t border-rule"
       style={{
         maxHeight: 280,
         scrollbarWidth: "thin",
-        scrollbarColor: "#D1D5DB transparent",
+        scrollbarColor: "#B8B2A1 transparent",
       }}
     >
       <div className="mx-auto max-w-2xl space-y-4 px-6 py-5">
         {transcript.length === 0 && !interimTranscript && (
-          <p className="py-6 text-center text-sm text-[#9CA3AF]">
+          <p className="py-6 text-center text-sm text-ink-muted">
             Your conversation will appear here...
           </p>
         )}
@@ -49,7 +49,7 @@ export function TranscriptPanel({
               <motion.div
                 key={`${msg.timestamp}-${index}`}
                 className={`rounded-lg px-4 py-3 ${
-                  isExaminer ? "bg-[#F7F8FA]" : "bg-white"
+                  isExaminer ? "bg-paper-warm" : "bg-paper"
                 }`}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -58,14 +58,14 @@ export function TranscriptPanel({
               >
                 <span
                   className={`mb-1 block text-xs font-medium ${
-                    isExaminer ? "text-[#111111]" : "text-[#6B7280]"
+                    isExaminer ? "text-ink" : "text-ink-muted"
                   }`}
                 >
                   {isExaminer ? "Examiner" : "You"}
                 </span>
                 <p
                   className={`text-[15px] leading-[1.6] ${
-                    isExaminer ? "text-[#111111]" : "text-[#374151]"
+                    isExaminer ? "text-ink" : "text-ink-soft"
                   }`}
                 >
                   {msg.text}
@@ -77,14 +77,14 @@ export function TranscriptPanel({
 
         {interimTranscript && (
           <motion.div
-            className="rounded-lg bg-white px-4 py-3"
+            className="rounded-lg bg-paper px-4 py-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <span className="mb-1 block text-xs font-medium text-[#9CA3AF]">
+            <span className="mb-1 block text-xs font-medium text-ink-muted">
               You
             </span>
-            <p className="text-[15px] leading-[1.6] italic text-[#9CA3AF]">
+            <p className="text-[15px] leading-[1.6] italic text-ink-muted">
               {interimTranscript}
             </p>
           </motion.div>

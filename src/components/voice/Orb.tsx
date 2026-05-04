@@ -1,37 +1,37 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
 
 interface OrbProps {
   state: 'idle' | 'listening' | 'processing' | 'speaking';
   analyserNode?: AnalyserNode | null;
-  micLevel?: number; // 0-1
+  micLevel?: number;
+  size?: number;
 }
 
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
+export function Orb({ state, analyserNode, micLevel = 0, size = 240 }: OrbProps) {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    setIsMobile(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  const effectiveSize = isMobile ? Math.round(size * 0.833) : size; // ~200px from 240px
 
-export function Orb({ state, analyserNode, micLevel = 0 }: OrbProps) {
   const rafRef = useRef<number>(0);
 
-  // Audio-reactive motion values for speaking state
   const audioLevel = useMotionValue(0);
   const orbScale = useTransform(audioLevel, [0, 1], [1, 1.08]);
   const speakingRingScale = useTransform(audioLevel, [0, 1], [1.05, 1.18]);
   const speakingRingOpacity = useTransform(audioLevel, [0, 1], [0.1, 0.35]);
 
-  // Mic-reactive values for listening state
   const micMotion = useMotionValue(0);
   const listeningRingScale = useTransform(micMotion, [0, 1], [1.0, 1.15]);
   const listeningRingOpacity = useTransform(micMotion, [0, 1], [0.2, 0.6]);
 
-  // Audio-reactive animation loop for speaking state
   useEffect(() => {
     if (state !== 'speaking' || !analyserNode) {
       audioLevel.set(0);
@@ -44,7 +44,6 @@ export function Orb({ state, analyserNode, micLevel = 0 }: OrbProps) {
       analyserNode.getByteFrequencyData(dataArray);
       const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
       const normalizedVolume = average / 255;
-      // Smooth the value
       const current = audioLevel.get();
       audioLevel.set(current + (normalizedVolume - current) * 0.25);
       rafRef.current = requestAnimationFrame(tick);
@@ -59,7 +58,6 @@ export function Orb({ state, analyserNode, micLevel = 0 }: OrbProps) {
     };
   }, [state, analyserNode, audioLevel]);
 
-  // Mic level tracking for listening state
   useEffect(() => {
     if (state !== 'listening') {
       micMotion.set(0);
@@ -70,37 +68,42 @@ export function Orb({ state, analyserNode, micLevel = 0 }: OrbProps) {
     micMotion.set(current + (micLevel - current) * 0.2);
   }, [state, micLevel, micMotion]);
 
-  // Determine rotation speed based on state
+  // Slowed rotation — 40% slower than original
   const rotationDuration = (() => {
     switch (state) {
-      case 'idle': return 25;
-      case 'listening': return 18;
-      case 'processing': return 8;
-      case 'speaking': return 15;
+      case 'idle': return 35;
+      case 'listening': return 25;
+      case 'processing': return 11;
+      case 'speaking': return 22;
     }
   })();
 
-  // Glow color/intensity per state
+  // Dark maritime glow
   const glowColor = (() => {
     switch (state) {
-      case 'idle': return 'rgba(6, 182, 212, 0.12)';
-      case 'listening': return 'rgba(6, 182, 212, 0.25)';
-      case 'processing': return 'rgba(37, 99, 235, 0.2)';
-      case 'speaking': return 'rgba(6, 182, 212, 0.3)';
+      case 'idle': return 'rgba(31, 78, 61, 0.10)';
+      case 'listening': return 'rgba(31, 78, 61, 0.20)';
+      case 'processing': return 'rgba(14, 26, 36, 0.15)';
+      case 'speaking': return 'rgba(31, 78, 61, 0.25)';
     }
   })();
+
+  const innerSize = Math.round(effectiveSize * 0.875);
+  const outerGlowSize = Math.round(effectiveSize * 0.97);
+  const ringSize = effectiveSize;
+  const outerRingSize = Math.round(effectiveSize * 1.06);
 
   return (
     <div
       className="relative flex items-center justify-center"
-      style={{ width: 320, height: 320 }}
+      style={{ width: effectiveSize, height: effectiveSize }}
     >
-      {/* ---- Layer 1: Outer glow ---- */}
+      {/* Outer glow */}
       <motion.div
         className="absolute rounded-full"
         style={{
-          width: 310,
-          height: 310,
+          width: outerGlowSize,
+          height: outerGlowSize,
           background: `radial-gradient(circle, ${glowColor}, transparent 70%)`,
         }}
         animate={{
@@ -118,17 +121,17 @@ export function Orb({ state, analyserNode, micLevel = 0 }: OrbProps) {
         }}
       />
 
-      {/* ---- Layer 2: Main orb with conic-gradient ---- */}
+      {/* Main orb — dark maritime conic gradient */}
       <motion.div
         className="relative rounded-full overflow-hidden"
         style={{
-          width: 280,
-          height: 280,
+          width: innerSize,
+          height: innerSize,
           ...(state === 'speaking' ? { scale: orbScale } : {}),
         }}
         animate={
           state === 'speaking'
-            ? {} // Driven by motion value
+            ? {}
             : state === 'idle'
               ? { scale: [1, 1.02, 1] }
               : state === 'processing'
@@ -143,52 +146,52 @@ export function Orb({ state, analyserNode, micLevel = 0 }: OrbProps) {
               : { duration: 0.3 }
         }
       >
-        {/* Rotating conic gradient background */}
+        {/* Rotating conic gradient — ink / deep-sea / chart-green / abyss */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: 'conic-gradient(from 0deg, #06b6d4, #0ea5e9, #2563eb, #0ea5e9, #06b6d4, #67e8f9, #ffffff, #67e8f9, #06b6d4, #0ea5e9, #2563eb, #0ea5e9, #06b6d4)',
+            background: 'conic-gradient(from 0deg, #0E1A24, #1A2D3D, #1F4E3D, #0A1822, #0E1A24, #1A2D3D, #1F4E3D, #0A1822, #0E1A24)',
             animation: `orbRotate ${rotationDuration}s linear infinite`,
           }}
         />
 
-        {/* ---- Layer 3: Inner highlight overlay (metallic sheen) ---- */}
+        {/* Inner highlight — subtle metallic sheen */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 30%, transparent 60%)',
+            background: 'radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 30%, transparent 60%)',
           }}
         />
 
-        {/* Secondary sheen for depth */}
+        {/* Secondary depth tint */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
-            background: 'radial-gradient(circle at 65% 70%, rgba(6, 182, 212, 0.15) 0%, transparent 50%)',
+            background: 'radial-gradient(circle at 65% 70%, rgba(31, 78, 61, 0.15) 0%, transparent 50%)',
           }}
         />
 
-        {/* Processing shimmer sweep */}
+        {/* Processing shimmer */}
         {state === 'processing' && (
           <div
             className="absolute inset-0 rounded-full"
             style={{
-              background: 'linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.25) 50%, transparent 60%)',
+              background: 'linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.12) 50%, transparent 60%)',
               animation: 'orbShimmer 2s ease-in-out infinite',
             }}
           />
         )}
       </motion.div>
 
-      {/* ---- Layer 4: Listening ring ---- */}
+      {/* Listening ring */}
       <AnimatePresence>
         {state === 'listening' && (
           <motion.div
             className="absolute rounded-full"
             style={{
-              width: 320,
-              height: 320,
-              border: '2px solid rgba(6, 182, 212, 0.3)',
+              width: ringSize,
+              height: ringSize,
+              border: '2px solid rgba(31, 78, 61, 0.25)',
               scale: listeningRingScale,
               opacity: listeningRingOpacity,
             }}
@@ -200,18 +203,18 @@ export function Orb({ state, analyserNode, micLevel = 0 }: OrbProps) {
         )}
       </AnimatePresence>
 
-      {/* ---- Layer 5: Speaking ring (audio-reactive) ---- */}
+      {/* Speaking ring (audio-reactive) */}
       <AnimatePresence>
         {state === 'speaking' && (
           <motion.div
             className="absolute rounded-full"
             style={{
-              width: 320,
-              height: 320,
-              border: '1.5px solid rgba(6, 182, 212, 0.2)',
+              width: ringSize,
+              height: ringSize,
+              border: '1.5px solid rgba(31, 78, 61, 0.2)',
               scale: speakingRingScale,
               opacity: speakingRingOpacity,
-              boxShadow: '0 0 30px rgba(6, 182, 212, 0.1)',
+              boxShadow: '0 0 30px rgba(31, 78, 61, 0.08)',
             }}
             initial={{ opacity: 0, scale: 1 }}
             animate={{ opacity: 1 }}
@@ -221,15 +224,15 @@ export function Orb({ state, analyserNode, micLevel = 0 }: OrbProps) {
         )}
       </AnimatePresence>
 
-      {/* ---- Ambient outer ring for speaking (secondary, slower pulse) ---- */}
+      {/* Ambient outer ring for speaking */}
       <AnimatePresence>
         {state === 'speaking' && (
           <motion.div
             className="absolute rounded-full"
             style={{
-              width: 340,
-              height: 340,
-              border: '1px solid rgba(6, 182, 212, 0.1)',
+              width: outerRingSize,
+              height: outerRingSize,
+              border: '1px solid rgba(31, 78, 61, 0.08)',
             }}
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{

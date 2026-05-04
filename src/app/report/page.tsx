@@ -1,126 +1,84 @@
 'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Target,
-  TrendingUp,
   AlertTriangle,
-  BookOpen,
-  MessageSquareQuote,
-  ArrowLeft,
-  RotateCcw,
-  Loader2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getTicketName } from '@/lib/tickets';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+interface SectionQuestion {
+  q: string;
+  performance: 'strong' | 'ok' | 'weak';
+}
+
+interface SectionBreakdown {
+  section: string;
+  score: number;
+  questions: SectionQuestion[];
+}
+
+interface KeyMoment {
+  question: string;
+  studentResponse: string;
+  verdict: string;
+  verdictTone: 'good' | 'ok' | 'bad';
+  modelAnswer: string;
+}
+
+interface DrillCard {
+  topicSlug: string;
+  topicName: string;
+  reason: string;
+}
+
 interface Report {
   overallScore: number;
-  summary: string;
-  strengths: string[];
-  weaknesses: string[];
-  topicsToStudy: string[];
-  examReadiness: string;
-  keyMoments: Array<{ quote: string; feedback: string }>;
+  verdict: 'pass' | 'marginal' | 'refer';
+  examinerJudgement: string;
+  confidence: 'high' | 'medium' | 'low';
+  sectionBreakdown: SectionBreakdown[];
+  keyMoments: KeyMoment[];
+  topThreeDrills: DrillCard[];
 }
 
 // ---------------------------------------------------------------------------
-// Score ring component
+// Helpers
 // ---------------------------------------------------------------------------
 
-function ScoreRing({ score }: { score: number }) {
-  const radius = 40;
-  const circumference = 2 * Math.PI * radius;
-  const progress = (score / 10) * circumference;
-  const color =
-    score >= 7 ? '#16A34A' : score >= 5 ? '#F59E0B' : '#EF4444';
-
-  return (
-    <div className="relative flex h-24 w-24 items-center justify-center">
-      <svg className="h-24 w-24 -rotate-90" viewBox="0 0 96 96">
-        <circle
-          cx="48"
-          cy="48"
-          r={radius}
-          fill="none"
-          stroke="#E5E7EB"
-          strokeWidth="6"
-        />
-        <circle
-          cx="48"
-          cy="48"
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth="6"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={circumference - progress}
-          className="transition-all duration-1000 ease-out"
-        />
-      </svg>
-      <span
-        className="absolute text-2xl font-bold"
-        style={{ color }}
-      >
-        {score}
-      </span>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Readiness badge
-// ---------------------------------------------------------------------------
-
-function ReadinessBadge({ readiness }: { readiness: string }) {
-  const config: Record<string, { bg: string; text: string; border: string }> = {
-    'Not Ready': { bg: '#FEF2F2', text: '#991B1B', border: '#FECACA' },
-    'Needs More Practice': { bg: '#FEF3C7', text: '#92400E', border: '#FDE68A' },
-    'Nearly There': { bg: '#ECFDF5', text: '#065F46', border: '#A7F3D0' },
-    'Exam Ready': { bg: '#ECFDF5', text: '#065F46', border: '#A7F3D0' },
-  };
-
-  const style = config[readiness] || config['Needs More Practice'];
-
-  return (
-    <span
-      className="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium"
-      style={{
-        backgroundColor: style.bg,
-        color: style.text,
-        border: `1px solid ${style.border}`,
-      }}
-    >
-      {readiness}
-    </span>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Ticket name lookup
-// ---------------------------------------------------------------------------
-
-const TICKET_NAMES: Record<string, string> = {
-  'oow-unlimited': 'OOW Unlimited',
-  'oow-nearcoastal': 'OOW Near Coastal',
-  'master-200gt': 'Master <200GT',
-  'master-500gt': 'Master <500GT',
-  'master-3000gt': 'Master <3000GT',
-  'master-unlimited': 'Master Unlimited',
-  'ym-offshore': 'Yacht Master Offshore',
-  'ym-ocean': 'Yacht Master Ocean',
-  'mate-200gt-yacht': 'Mate <200GT Yacht',
-  'master-200gt-yacht': 'Master <200GT Yacht',
-  'master-500gt-yacht': 'Master <500GT Yacht',
-  'master-3000gt-yacht': 'Master <3000GT Yacht',
-  'engineer-oow': 'Engineer OOW',
-  'eto': 'ETO',
+const VERDICT_COLOURS: Record<string, string> = {
+  pass: '#1F4E3D',
+  marginal: '#9A7B3A',
+  refer: '#8B2E2E',
 };
+
+const PERFORMANCE_COLOURS: Record<string, string> = {
+  strong: '#1F4E3D',
+  ok: '#9A7B3A',
+  weak: '#8B2E2E',
+  good: '#1F4E3D',
+  bad: '#8B2E2E',
+};
+
+function barFillColour(score: number): string {
+  if (score >= 75) return '#1F4E3D';
+  if (score >= 50) return '#9A7B3A';
+  return '#D8D4C7';
+}
+
+function computeVerdict(score: number): 'pass' | 'marginal' | 'refer' {
+  if (score >= 75) return 'pass';
+  if (score >= 60) return 'marginal';
+  return 'refer';
+}
 
 // ---------------------------------------------------------------------------
 // Inner component (needs Suspense for useSearchParams)
@@ -128,20 +86,23 @@ const TICKET_NAMES: Record<string, string> = {
 
 function ReportInner() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const ticketSlug = searchParams.get('ticket') || 'oow-unlimited';
-  const ticketName = TICKET_NAMES[ticketSlug] || ticketSlug;
+  const ticketName = getTicketName(ticketSlug);
 
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+
+  // Verdict reveal beats
+  const [revealBeat, setRevealBeat] = useState(0); // 0=black, 1=verdict, 2=judgement, 3=full
 
   useEffect(() => {
     const generateReport = async () => {
       try {
         const stored = sessionStorage.getItem('echo-transcript');
         if (!stored) {
-          setError('No session data found. Please complete an exam session first.');
+          setError('no-transcript');
           setLoading(false);
           return;
         }
@@ -149,7 +110,7 @@ function ReportInner() {
         const transcript = JSON.parse(stored);
 
         if (!transcript.length) {
-          setError('The session transcript is empty. Please try a longer session.');
+          setError('no-transcript');
           setLoading(false);
           return;
         }
@@ -177,17 +138,55 @@ function ReportInner() {
     generateReport();
   }, [ticketName]);
 
+  // Reveal sequence: after report loads, advance beats
+  useEffect(() => {
+    if (!report) return;
+    // Beat 0 (black) held for 2.5s
+    const t1 = setTimeout(() => setRevealBeat(1), 2500);
+    // Beat 1 (verdict word) → Beat 2 (judgement) at 4s
+    const t2 = setTimeout(() => setRevealBeat(2), 4000);
+    // Beat 2 → Beat 3 (full report) at 5.5s
+    const t3 = setTimeout(() => setRevealBeat(3), 5500);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+  }, [report]);
+
   // ── Loading state ──
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6">
-        <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" />
-        <p className="mt-4 text-[15px] font-medium text-[#6B7280]">
-          Analysing your performance...
+      <div className="flex min-h-screen flex-col items-center justify-center bg-ink px-6">
+        <p className="font-serif text-[22px] italic text-paper" style={{ fontWeight: 400 }}>
+          Marking the paper.
         </p>
-        <p className="mt-1 text-sm text-[#9CA3AF]">
-          This usually takes a few seconds
+        <p
+          className="mt-3 font-mono text-[11px] uppercase text-rule"
+          style={{ letterSpacing: '0.16em' }}
+        >
+          One Moment
         </p>
+      </div>
+    );
+  }
+
+  // ── Empty state — no transcript ──
+  if (error === 'no-transcript') {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-6">
+        <AlertTriangle className="h-8 w-8 text-ink-muted" />
+        <p className="mt-4 max-w-md text-center font-serif text-[15px] italic text-ink-muted" style={{ fontWeight: 400 }}>
+          This report needs a completed examination session. Head back and take one first.
+        </p>
+        <Link
+          href="/examination"
+          className="group relative mt-8 font-serif text-[17px] italic text-ink"
+          style={{ fontWeight: 400 }}
+        >
+          Take the chair &rarr;
+          <span className="absolute -bottom-1 left-0 h-px w-0 bg-chart-green transition-all duration-300 ease-out group-hover:w-full" />
+        </Link>
       </div>
     );
   }
@@ -195,157 +194,287 @@ function ReportInner() {
   // ── Error state ──
   if (error || !report) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-white px-6">
-        <AlertTriangle className="h-8 w-8 text-[#F59E0B]" />
-        <p className="mt-4 text-[15px] font-medium text-[#111111]">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-paper px-6">
+        <AlertTriangle className="h-8 w-8 text-marginal" />
+        <p className="mt-4 font-serif text-[15px] italic text-ink" style={{ fontWeight: 400 }}>
           {error || 'Something went wrong'}
         </p>
-        <div className="mt-6 flex gap-3">
-          <Link
-            href={`/session?ticket=${ticketSlug}`}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#1D4ED8] transition-colors"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Try Again
-          </Link>
-          <Link
-            href="/select"
-            className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-5 py-2.5 text-sm font-medium text-[#111111] hover:border-[#D1D5DB] transition-colors"
-          >
-            Choose Exam
-          </Link>
-        </div>
+        <Link
+          href="/examination"
+          className="group relative mt-8 font-serif text-[17px] italic text-ink"
+          style={{ fontWeight: 400 }}
+        >
+          Try again &rarr;
+          <span className="absolute -bottom-1 left-0 h-px w-0 bg-chart-green transition-all duration-300 ease-out group-hover:w-full" />
+        </Link>
       </div>
     );
   }
 
-  // ── Report view ──
-  return (
-    <div className="min-h-screen bg-[#F7F8FA]">
-      {/* Header */}
-      <header className="border-b border-[#E5E7EB] bg-white">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-6">
-          <Link
-            href="/select"
-            className="flex items-center gap-2 text-sm text-[#6B7280] hover:text-[#111111] transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Link>
-          <span className="font-bold text-[#111111]">Session Report</span>
-          <div className="w-14" />
-        </div>
-      </header>
+  // ── Derive verdict client-side ──
+  const verdict = computeVerdict(report.overallScore);
+  const verdictColour = VERDICT_COLOURS[verdict];
 
-      <main className="mx-auto max-w-3xl px-6 py-8 space-y-6">
-        {/* ── Score + Summary card ── */}
-        <div className="rounded-xl border border-[#E5E7EB] bg-white p-6">
-          <div className="flex items-start gap-6">
-            <ScoreRing score={report.overallScore} />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-xl font-bold text-[#111111]">{ticketName}</h1>
-                <ReadinessBadge readiness={report.examReadiness} />
-              </div>
-              <p className="mt-3 text-[15px] leading-relaxed text-[#6B7280]">
-                {report.summary}
-              </p>
+  // ── Verdict reveal sequence (UNTOUCHED) ──
+  if (revealBeat < 3) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-ink">
+        {/* Beat 1: Verdict word */}
+        <AnimatePresence>
+          {revealBeat >= 1 && (
+            <motion.span
+              className="font-serif text-[96px] font-bold uppercase leading-none"
+              style={{ color: verdictColour }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            >
+              {verdict}
+            </motion.span>
+          )}
+        </AnimatePresence>
+
+        {/* Beat 2: Examiner judgement */}
+        <AnimatePresence>
+          {revealBeat >= 2 && (
+            <motion.p
+              className="mt-6 max-w-lg text-center font-serif text-[22px] italic leading-relaxed text-paper/80"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+            >
+              {report.examinerJudgement}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  // ── Full report view ──
+  return (
+    <motion.div
+      className="min-h-screen bg-paper"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
+    >
+      <main className="mx-auto max-w-[880px] px-6 py-12">
+        {/* ── Zone 1: Verdict Banner ── */}
+        <div className="border-t border-rule" />
+        <div className="flex flex-col gap-6 py-8 sm:flex-row sm:items-center sm:justify-between">
+          <span
+            className="font-serif text-[40px] sm:text-[56px] uppercase leading-none"
+            style={{ color: verdictColour, fontWeight: 400 }}
+          >
+            {verdict}
+          </span>
+          <p className="flex-1 font-serif text-[17px] italic text-ink sm:text-center" style={{ fontWeight: 400 }}>
+            {report.examinerJudgement}
+          </p>
+          <div className="shrink-0 sm:text-right">
+            <span className="font-mono text-[32px] leading-none text-ink" style={{ fontWeight: 500 }}>
+              {report.overallScore}{' '}
+              <span className="text-[18px] text-ink-muted" style={{ fontWeight: 400 }}>/ 100</span>
+            </span>
+            <p
+              className="mt-1 font-mono text-[11px] uppercase text-ink-muted"
+              style={{ letterSpacing: '0.12em' }}
+            >
+              Confidence &middot; {report.confidence}
+            </p>
+          </div>
+        </div>
+        <div className="border-t border-rule" />
+
+        {/* ── Zone 2: Section Breakdown ── */}
+        {report.sectionBreakdown.length > 0 && (
+          <div className="mt-16">
+            <h2 className="font-serif text-[24px] text-ink" style={{ fontWeight: 400 }}>
+              Section breakdown
+            </h2>
+            <div className="mt-6">
+              {report.sectionBreakdown.map((section) => {
+                const isExpanded = expandedSection === section.section;
+                return (
+                  <div key={section.section} className="border-b border-rule">
+                    <button
+                      onClick={() =>
+                        setExpandedSection(isExpanded ? null : section.section)
+                      }
+                      className="flex w-full items-center gap-4 py-4"
+                    >
+                      <span className="w-48 shrink-0 text-left font-serif text-[17px] italic text-ink" style={{ fontWeight: 400 }}>
+                        {section.section}
+                      </span>
+                      <div className="flex-1">
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-rule">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.max(section.score, 2)}%`,
+                              backgroundColor: barFillColour(section.score),
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <span className="w-10 shrink-0 text-right font-mono text-[13px] text-ink-muted">
+                        {section.score}%
+                      </span>
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4 shrink-0 text-ink-muted" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 shrink-0 text-ink-muted" />
+                      )}
+                    </button>
+                    {isExpanded && section.questions.length > 0 && (
+                      <div className="mb-4 ml-3 border-l border-rule pl-6 pt-1 pb-2">
+                        {section.questions.map((q, qi) => (
+                          <div
+                            key={qi}
+                            className="flex items-start gap-3 py-1.5"
+                          >
+                            <span
+                              className="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                              style={{
+                                backgroundColor:
+                                  PERFORMANCE_COLOURS[q.performance] || '#9A7B3A',
+                              }}
+                            />
+                            <span className="font-serif text-[15px] italic text-ink-soft" style={{ fontWeight: 400 }}>
+                              {q.q}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
-
-        {/* ── Strengths ── */}
-        {report.strengths.length > 0 && (
-          <div className="rounded-xl border border-[#E5E7EB] bg-white p-6">
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#16A34A]">
-              <TrendingUp className="h-4 w-4" />
-              Strengths
-            </h2>
-            <ul className="mt-4 space-y-2">
-              {report.strengths.map((s, i) => (
-                <li key={i} className="flex items-start gap-3 text-[15px] text-[#111111]">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#16A34A]" />
-                  {s}
-                </li>
-              ))}
-            </ul>
-          </div>
         )}
 
-        {/* ── Weaknesses ── */}
-        {report.weaknesses.length > 0 && (
-          <div className="rounded-xl border border-[#E5E7EB] bg-white p-6">
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#EF4444]">
-              <AlertTriangle className="h-4 w-4" />
-              Areas for Improvement
-            </h2>
-            <ul className="mt-4 space-y-2">
-              {report.weaknesses.map((w, i) => (
-                <li key={i} className="flex items-start gap-3 text-[15px] text-[#111111]">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#EF4444]" />
-                  {w}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* ── Topics to Study ── */}
-        {report.topicsToStudy.length > 0 && (
-          <div className="rounded-xl border border-[#E5E7EB] bg-white p-6">
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#2563EB]">
-              <BookOpen className="h-4 w-4" />
-              Recommended Study Topics
-            </h2>
-            <ul className="mt-4 space-y-2">
-              {report.topicsToStudy.map((t, i) => (
-                <li key={i} className="flex items-start gap-3 text-[15px] text-[#111111]">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]" />
-                  {t}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* ── Key Moments ── */}
+        {/* ── Zone 3: Key Moments ── */}
         {report.keyMoments.length > 0 && (
-          <div className="rounded-xl border border-[#E5E7EB] bg-white p-6">
-            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#6B7280]">
-              <MessageSquareQuote className="h-4 w-4" />
-              Key Moments
+          <div className="mt-16">
+            <h2 className="font-serif text-[24px] text-ink" style={{ fontWeight: 400 }}>
+              Key moments
             </h2>
-            <div className="mt-4 space-y-4">
-              {report.keyMoments.map((m, i) => (
-                <div key={i} className="rounded-lg bg-[#F7F8FA] p-4">
-                  <p className="text-sm italic text-[#6B7280]">
-                    &ldquo;{m.quote}&rdquo;
-                  </p>
-                  <p className="mt-2 text-[15px] text-[#111111]">{m.feedback}</p>
+            <div className="mt-8">
+              {report.keyMoments.map((moment, i) => (
+                <div key={i}>
+                  {/* Moment block */}
+                  <div>
+                    <p className="font-serif text-[19px] italic text-ink" style={{ fontWeight: 400 }}>
+                      {moment.question}
+                    </p>
+                    <p className="mt-3 font-serif text-[15px] italic text-ink-muted" style={{ fontWeight: 400 }}>
+                      &mdash; &ldquo;{moment.studentResponse}&rdquo;
+                    </p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span
+                        className="h-2 w-2 shrink-0 rounded-full"
+                        style={{
+                          backgroundColor:
+                            PERFORMANCE_COLOURS[moment.verdictTone] || '#9A7B3A',
+                        }}
+                      />
+                      <span className="font-serif text-[15px] italic text-ink" style={{ fontWeight: 400 }}>
+                        {moment.verdict}
+                      </span>
+                    </div>
+                    {moment.modelAnswer && (
+                      <div className="mt-4">
+                        <p
+                          className="font-mono text-[10px] uppercase text-ink-muted"
+                          style={{ letterSpacing: '0.12em' }}
+                        >
+                          What good looked like
+                        </p>
+                        <p className="mt-1.5 font-serif text-[15px] italic text-ink-soft" style={{ fontWeight: 400 }}>
+                          {moment.modelAnswer}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Separator between moments */}
+                  {i < report.keyMoments.length - 1 && (
+                    <div className="flex justify-center py-8">
+                      <div className="w-[80%] border-t border-rule" />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* ── Action buttons ── */}
-        <div className="flex items-center justify-center gap-4 pb-8">
-          <Link
-            href={`/session?ticket=${ticketSlug}`}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#2563EB] px-6 py-3 text-[15px] font-medium text-white hover:bg-[#1D4ED8] transition-colors"
-          >
-            <RotateCcw className="h-4 w-4" />
-            Practice Again
-          </Link>
-          <Link
-            href="/select"
-            className="inline-flex items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-6 py-3 text-[15px] font-medium text-[#111111] hover:border-[#D1D5DB] transition-colors"
-          >
-            Choose Different Exam
-          </Link>
+        {/* ── Zone 4: Drill Cards ── */}
+        {report.topThreeDrills.length > 0 && (
+          <div className="mt-16">
+            <h2 className="font-serif text-[24px] text-ink" style={{ fontWeight: 400 }}>
+              Revisit these tonight.
+            </h2>
+            {/* Desktop: 3 columns separated by vertical hairlines */}
+            <div className="mt-8 flex flex-col sm:flex-row">
+              {report.topThreeDrills.map((drill, i) => (
+                <div key={drill.topicSlug}>
+                  {/* Mobile separator */}
+                  {i > 0 && <div className="border-t border-rule sm:hidden" />}
+                  <div className={`flex flex-1 flex-col py-6 sm:py-0 ${
+                    i > 0 ? 'sm:border-l sm:border-rule sm:pl-8' : ''
+                  } ${i < report.topThreeDrills.length - 1 ? 'sm:pr-8' : ''}`}>
+                    <span className="font-serif text-[19px] italic text-ink" style={{ fontWeight: 400 }}>
+                      {drill.topicName}
+                    </span>
+                    <p className="mt-2 flex-1 font-serif text-[17px] text-ink-soft" style={{ fontWeight: 400 }}>
+                      {drill.reason}
+                    </p>
+                    <Link
+                      href={`/drill?topic=${drill.topicSlug}`}
+                      className="group relative mt-4 inline-block font-serif text-[15px] italic text-ink"
+                      style={{ fontWeight: 400 }}
+                    >
+                      Ten-minute drill &rarr;
+                      <span className="absolute -bottom-1 left-0 h-px w-0 bg-chart-green transition-all duration-300 ease-out group-hover:w-full" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Zone 5: Footer Actions ── */}
+        <div className="mt-16">
+          <div className="border-t border-rule" />
+          <div className="flex flex-col items-center pt-8 pb-24">
+            <Link
+              href="/examination"
+              className="group relative font-serif text-[17px] italic text-ink"
+              style={{ fontWeight: 400 }}
+            >
+              Take the chair again &rarr;
+              <span className="absolute -bottom-1 left-0 h-px w-0 bg-chart-green transition-all duration-300 ease-out group-hover:w-full" />
+            </Link>
+            <button
+              onClick={() => window.print()}
+              className="mt-4 font-mono text-[12px] text-ink-muted transition-colors hover:text-ink"
+            >
+              Save report
+            </button>
+            <Link
+              href="/home"
+              className="mt-4 font-mono text-[12px] text-ink-muted transition-colors hover:text-ink"
+            >
+              Back to home
+            </Link>
+          </div>
         </div>
       </main>
-    </div>
+    </motion.div>
   );
 }
 
@@ -357,8 +486,10 @@ export default function ReportPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-white">
-          <Loader2 className="h-8 w-8 animate-spin text-[#2563EB]" />
+        <div className="flex min-h-screen items-center justify-center bg-ink">
+          <p className="font-serif text-[22px] italic text-paper" style={{ fontWeight: 400 }}>
+            Marking the paper.
+          </p>
         </div>
       }
     >

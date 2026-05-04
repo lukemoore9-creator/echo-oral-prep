@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { ticketType } = await req.json();
+  const { ticketType, sessionType } = await req.json();
   const supabase = createServiceClient();
 
   // Get student ID
@@ -27,6 +27,7 @@ export async function POST(req: Request) {
     .insert({
       student_id: student.id,
       ticket_type: ticketType,
+      session_type: sessionType || "exam",
       status: "active",
     })
     .select("id")

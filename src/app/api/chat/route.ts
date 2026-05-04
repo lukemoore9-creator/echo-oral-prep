@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { auth } from "@clerk/nextjs/server";
-import { buildExaminerPrompt } from "@/lib/prompts";
+import { buildExaminerPrompt, buildDrillPrompt, buildBridgePrompt, buildBridgeDrillPrompt } from "@/lib/prompts";
 import { createServiceClient } from "@/lib/supabase/server";
 import { loadRecentCorrections } from "@/lib/corrections-loader";
 
@@ -11,8 +11,15 @@ const client = new Anthropic();
 export async function POST(req: Request) {
   const t0 = Date.now();
   try {
-    const { messages, ticketType, topic, currentTopic, mode } = await req.json();
+    const { messages, ticketType, topic, currentTopic, mode, sectionName, sectionQuestionNumber, sectionQuestionTotal, isExamComplete, isDrill, drillTopic, isBridge, firstName } = await req.json();
     const effectiveTopic = currentTopic || topic;
+
+    const examProgress = sectionName ? {
+      sectionName: sectionName as string,
+      questionNumber: (sectionQuestionNumber as number) || 1,
+      questionTotal: (sectionQuestionTotal as number) || 6,
+      isExamComplete: (isExamComplete as boolean) || false,
+    } : undefined;
 
     const isOpening = messages.length === 1;
 
@@ -86,12 +93,30 @@ STUDENT CONTEXT:
 
     let systemPrompt: string;
     try {
-      systemPrompt =
-        buildExaminerPrompt(ticketType || "OOW Unlimited", effectiveTopic) +
-        studentContext +
-        corrections;
+      if (isBridge && isDrill && drillTopic) {
+        systemPrompt =
+          buildBridgeDrillPrompt(drillTopic, ticketType || "OOW Unlimited", { firstName }) +
+          studentContext +
+          corrections;
+      } else if (isBridge) {
+        const topicSlug = drillTopic || 'lead';
+        systemPrompt =
+          buildBridgePrompt(ticketType || "OOW Unlimited", topicSlug, { firstName }) +
+          studentContext +
+          corrections;
+      } else if (isDrill && drillTopic) {
+        systemPrompt =
+          buildDrillPrompt(drillTopic, ticketType || "OOW Unlimited") +
+          studentContext +
+          corrections;
+      } else {
+        systemPrompt =
+          buildExaminerPrompt(ticketType || "OOW Unlimited", effectiveTopic, examProgress) +
+          studentContext +
+          corrections;
+      }
     } catch (err) {
-      console.error("Failed to build examiner prompt from knowledge base:", err);
+      console.error("Failed to build prompt from knowledge base:", err);
       systemPrompt =
         `You are Daniel, a senior maritime oral examiner. You are conducting an oral exam for a ${ticketType || "OOW Unlimited"} candidate` +
         (topic ? ` on the topic of ${topic}.` : ".") +
@@ -100,18 +125,22 @@ STUDENT CONTEXT:
         corrections;
     }
 
-    // Mode-specific instructions
-    const MODE_INSTRUCTIONS: Record<string, string> = {
-      trainer: "\n\nMODE: TRAINER\nYou are in TRAINER mode. You are a friendly maritime tutor. The student can ask you anything and you will explain it clearly. You are NOT an examiner — you are a teacher. Answer questions, explain concepts, discuss topics. Be warm, patient, and encouraging. If they ask you something, answer it fully.",
-      tutor: "\n\nMODE: TUTOR\nYou are in TUTOR mode. You are a study partner helping the student prepare. Ask questions to test their knowledge, but if they struggle, help them understand. Explain concepts when needed. Balance testing with teaching. Be supportive but push them to think.",
-      examiner: "\n\nMODE: EXAMINER\nYou are in EXAMINER mode. You are conducting a formal oral examination. Do NOT answer the student's questions — YOU ask the questions. If they ask you something, say 'Let me ask you that — what do you think?' and turn it back on them. Be professional, direct, and thorough.",
-    };
-    const modeInstruction = MODE_INSTRUCTIONS[mode || 'examiner'] || MODE_INSTRUCTIONS.examiner;
-    const finalPrompt = systemPrompt + modeInstruction;
+    // Mode-specific instructions (skip for drill/bridge — those prompts are self-contained)
+    let finalPrompt = systemPrompt;
+    if (!isDrill && !isBridge) {
+      const MODE_INSTRUCTIONS: Record<string, string> = {
+        trainer: "\n\nMODE: TRAINER\nYou are in TRAINER mode. You are a friendly maritime tutor. The student can ask you anything and you will explain it clearly. You are NOT an examiner — you are a teacher. Answer questions, explain concepts, discuss topics. Be warm, patient, and encouraging. If they ask you something, answer it fully.",
+        tutor: "\n\nMODE: TUTOR\nYou are in TUTOR mode. You are a study partner helping the student prepare. Ask questions to test their knowledge, but if they struggle, help them understand. Explain concepts when needed. Balance testing with teaching. Be supportive but push them to think.",
+        examiner: "\n\nMODE: EXAMINER\nYou are in EXAMINER mode. You are conducting a formal oral examination. Do NOT answer the student's questions — YOU ask the questions. If they ask you something, say 'Let me ask you that — what do you think?' and turn it back on them. Be professional, direct, and thorough.",
+      };
+      const modeInstruction = MODE_INSTRUCTIONS[mode || 'examiner'] || MODE_INSTRUCTIONS.examiner;
+      finalPrompt = systemPrompt + modeInstruction;
+    }
 
     const model = "claude-haiku-4-5-20251001";
-    const maxTokens = (mode === 'trainer' || mode === 'tutor') ? 250 : 150;
-    console.log(`[Chat] model: ${model}, mode: ${mode || 'examiner'}, prompt: ${finalPrompt.length} chars, topic: ${effectiveTopic || 'none'}, setup: ${Date.now() - t0}ms`);
+    const maxTokens = isDrill ? 100 : (mode === 'trainer' || mode === 'tutor') ? 250 : 150;
+    const modeLabel = isBridge ? (isDrill ? 'bridge-drill' : 'bridge') : isDrill ? 'drill' : (mode || 'examiner');
+    console.log(`[Chat] model: ${model}, mode: ${modeLabel}, prompt: ${finalPrompt.length} chars, topic: ${effectiveTopic || 'none'}, setup: ${Date.now() - t0}ms`);
 
     const stream = client.messages.stream({
       model,

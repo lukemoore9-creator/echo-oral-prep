@@ -15,13 +15,7 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-
-const TICKET_OPTIONS = [
-  { value: "oow-3000gt-yacht", label: "OOW <3000GT (Yacht)" },
-  { value: "oow-unlimited", label: "OOW Unlimited" },
-  { value: "master-3000gt", label: "Master <3000GT" },
-  { value: "master-unlimited", label: "Master Unlimited" },
-];
+import { STUDENT_TICKETS } from "@/lib/tickets";
 
 export default function OnboardingPage() {
   const { user } = useUser();
@@ -60,7 +54,7 @@ export default function OnboardingPage() {
       }
 
       await user?.reload();
-      router.push("/");
+      router.push("/home");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";
       setError("Request failed: " + msg);
@@ -69,19 +63,19 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-6">
-      <Card className="w-full max-w-[480px] border border-[#E5E7EB] shadow-none">
+    <div className="flex min-h-screen items-center justify-center bg-paper px-6">
+      <Card className="w-full max-w-[480px] border border-rule shadow-none">
         <CardContent className="px-8 py-10">
           <div className="mb-10">
-            <span className="text-2xl font-bold tracking-tight text-[#111111]">
+            <span className="font-serif text-2xl font-bold tracking-tight text-ink">
               Echo
             </span>
           </div>
 
-          <h1 className="text-xl font-bold tracking-tight text-[#111111]">
+          <h1 className="font-serif text-xl font-bold tracking-tight text-ink">
             Let&apos;s get you set up
           </h1>
-          <p className="mt-2 text-[15px] leading-relaxed text-[#6B7280]">
+          <p className="mt-2 text-[15px] leading-relaxed text-ink-muted">
             Tell us about your exam so we can personalise your prep.
           </p>
 
@@ -89,7 +83,7 @@ export default function OnboardingPage() {
             <div className="space-y-2">
               <Label
                 htmlFor="fullName"
-                className="text-sm font-medium text-[#111111]"
+                className="text-sm font-medium text-ink"
               >
                 Full name
               </Label>
@@ -99,26 +93,26 @@ export default function OnboardingPage() {
                 type="text"
                 required
                 defaultValue={user?.fullName || ""}
-                className="h-[44px] rounded-lg border-[#E5E7EB] bg-white px-4 text-[15px] text-[#111111] transition-colors focus-visible:border-[#2563EB] focus-visible:ring-[#2563EB]/20"
+                className="h-[44px] rounded-lg border-rule bg-paper px-4 text-[15px] text-ink transition-colors focus-visible:border-chart-green focus-visible:ring-chart-green/20"
                 placeholder="Your full name"
               />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-[#111111]">
+              <Label className="text-sm font-medium text-ink">
                 What exam are you preparing for?
               </Label>
               <Select
                 value={ticketType}
                 onValueChange={(value) => setTicketType(value ?? "")}
               >
-                <SelectTrigger className="h-[44px] w-full rounded-lg border-[#E5E7EB] bg-white px-4 text-[15px] text-[#111111] transition-colors focus-visible:border-[#2563EB] focus-visible:ring-[#2563EB]/20">
+                <SelectTrigger className="h-[44px] w-full rounded-lg border-rule bg-paper px-4 text-[15px] text-ink transition-colors focus-visible:border-chart-green focus-visible:ring-chart-green/20">
                   <SelectValue placeholder="Select your exam" />
                 </SelectTrigger>
                 <SelectContent>
-                  {TICKET_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
+                  {STUDENT_TICKETS.map((t) => (
+                    <SelectItem key={t.slug} value={t.slug}>
+                      {t.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -131,9 +125,9 @@ export default function OnboardingPage() {
                 onCheckedChange={(checked) =>
                   setHasExamDate(checked === true)
                 }
-                className="size-4 rounded border-[#E5E7EB] data-checked:border-[#2563EB] data-checked:bg-[#2563EB]"
+                className="size-4 rounded border-rule data-checked:border-chart-green data-checked:bg-chart-green"
               />
-              <Label className="text-sm font-medium text-[#111111] cursor-pointer">
+              <Label className="cursor-pointer text-sm font-medium text-ink">
                 I have an exam date
               </Label>
             </div>
@@ -142,7 +136,7 @@ export default function OnboardingPage() {
               <div className="space-y-2">
                 <Label
                   htmlFor="examDate"
-                  className="text-sm font-medium text-[#111111]"
+                  className="text-sm font-medium text-ink"
                 >
                   Exam date
                 </Label>
@@ -150,19 +144,19 @@ export default function OnboardingPage() {
                   id="examDate"
                   name="examDate"
                   type="date"
-                  className="h-[44px] rounded-lg border-[#E5E7EB] bg-white px-4 text-[15px] text-[#111111] transition-colors focus-visible:border-[#2563EB] focus-visible:ring-[#2563EB]/20"
+                  className="h-[44px] rounded-lg border-rule bg-paper px-4 text-[15px] text-ink transition-colors focus-visible:border-chart-green focus-visible:ring-chart-green/20"
                 />
               </div>
             )}
 
             {error && (
-              <p className="text-sm text-[#EF4444]">{error}</p>
+              <p className="text-sm text-refer">{error}</p>
             )}
 
             <Button
               type="submit"
               disabled={loading || !ticketType}
-              className="h-[44px] w-full rounded-lg bg-[#2563EB] text-[15px] font-medium text-white hover:bg-[#1D4ED8] disabled:opacity-50"
+              className="h-[44px] w-full rounded-lg bg-chart-green text-[15px] font-medium text-paper hover:bg-ink disabled:opacity-50"
             >
               {loading ? "Setting up..." : "Continue"}
             </Button>

@@ -1,5 +1,6 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { STUDENT_TICKET_SLUGS } from "@/lib/tickets";
 
 export async function GET() {
   const { userId } = await auth();
@@ -17,6 +18,18 @@ export async function GET() {
 
   if (error || !student) {
     return Response.json({ error: "Student not found" }, { status: 404 });
+  }
+
+  // Silently coerce invalid ticket to oow-unlimited
+  if (!STUDENT_TICKET_SLUGS.includes(student.ticket_type)) {
+    student.ticket_type = 'oow-unlimited';
+    // Background PATCH to fix the row
+    Promise.resolve(
+      supabase
+        .from("students")
+        .update({ ticket_type: 'oow-unlimited' })
+        .eq("id", student.id)
+    ).catch((err: unknown) => console.warn("Failed to migrate ticket:", err));
   }
 
   // Fetch latest completed session
@@ -118,6 +131,45 @@ export async function POST(req: Request) {
     return Response.json({ success: true });
   } catch (err) {
     console.error("Student POST error:", err);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return Response.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    const { userId } = await auth();
+    if (!userId) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const supabase = createServiceClient();
+
+    const updates: Record<string, unknown> = {};
+    if (body.ticketType) updates.ticket_type = body.ticketType;
+    if (body.examDate !== undefined) {
+      updates.exam_date = body.examDate || null;
+      updates.has_exam_date = !!body.examDate;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return Response.json({ error: "No fields to update" }, { status: 400 });
+    }
+
+    const { error: dbError } = await supabase
+      .from("students")
+      .update(updates)
+      .eq("clerk_id", userId);
+
+    if (dbError) {
+      console.error("Student PATCH error:", dbError);
+      return Response.json({ error: dbError.message }, { status: 500 });
+    }
+
+    return Response.json({ success: true });
+  } catch (err) {
+    console.error("Student PATCH error:", err);
     const message = err instanceof Error ? err.message : "Unknown error";
     return Response.json({ error: message }, { status: 500 });
   }

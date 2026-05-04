@@ -12,7 +12,7 @@ export default async function OnboardingLayout({
     | undefined;
 
   if (metadata?.onboardingComplete) {
-    redirect("/");
+    redirect("/home");
   }
 
   return <>{children}</>;

@@ -1,13 +1,25 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Fraunces, JetBrains_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Header } from "@/components/layout/Header";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600"],
   variable: "--font-inter",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-fraunces",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-jetbrains",
 });
 
 export const metadata: Metadata = {
@@ -23,14 +35,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body
+        className={`${inter.variable} ${fraunces.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+      >
         <ClerkProvider
           appearance={{
             variables: {
-              colorPrimary: "#2563EB",
-              colorText: "#111111",
-              colorTextSecondary: "#6B7280",
-              colorBackground: "#FFFFFF",
+              colorPrimary: "#1F4E3D",
+              colorText: "#0E1A24",
+              colorTextSecondary: "#7A8590",
+              colorBackground: "#FAFAF7",
               borderRadius: "8px",
               fontFamily: "Inter, sans-serif",
             },

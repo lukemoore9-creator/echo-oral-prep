@@ -3,27 +3,41 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import type { SessionState, TranscriptEntry } from '@/lib/types';
 import { useSpeechRecognition } from './useSpeechRecognition';
+import { getStructureForTicket, type ExamSection } from '@/lib/exam-structure';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
+interface StartSessionOptions {
+  drillTopic?: string;
+  drillTopicName?: string;
+  bridge?: boolean;
+}
+
 interface UseVoiceSessionReturn {
   state: SessionState;
   transcript: TranscriptEntry[];
   interimTranscript: string;
-  startSession: (ticketType: string, firstName?: string, totalSessions?: number) => void;
+  startSession: (ticketType: string, firstName?: string, totalSessions?: number, options?: StartSessionOptions) => void;
   endSession: () => void;
   pauseSession: () => void;
   resumeSession: () => void;
   setTicketType: (slug: string) => void;
   setAiMode: (mode: string) => void;
   toggleMic: () => void;
+  interrupt: () => void;
+  injectUserMessage: (text: string) => void;
+  isMuted: boolean;
+  isPaused: boolean;
   analyserNode: AnalyserNode | null;
   micLevel: number;
   browserSupported: boolean;
   lastError: string | null;
+  currentSectionIndex: number;
+  questionsAskedInSection: number;
+  examComplete: boolean;
 }
 
 const TOPIC_KEYWORDS: Record<string, string> = {
@@ -128,6 +142,14 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   const [micLevel, setMicLevel] = useState(0);
   const [lastError, setLastError] = useState<string | null>(null);
 
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [questionsAskedInSection, setQuestionsAskedInSection] = useState(0);
+  const [examComplete, setExamComplete] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const isMutedRef = useRef(false);
+  useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
+
   const messagesRef = useRef<Message[]>([]);
   const ticketTypeRef = useRef<string>('oow-unlimited');
   const currentTopicRef = useRef<string | null>(null);
@@ -136,6 +158,14 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   const isPausedRef = useRef(false);
   const aiModeRef = useRef<string>('examiner');
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const examStructureRef = useRef<ExamSection[]>([]);
+  const currentSectionIndexRef = useRef(0);
+  const questionsAskedInSectionRef = useRef(0);
+  const examCompleteRef = useRef(false);
+  const isDrillRef = useRef(false);
+  const drillTopicRef = useRef<string | null>(null);
+  const isBridgeRef = useRef(false);
+  const firstNameRef = useRef<string>('');
 
   const micStreamRef = useRef<MediaStream | null>(null);
   const micContextRef = useRef<AudioContext | null>(null);
@@ -178,6 +208,36 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   }, []);
 
   // ------------------------------------------------------------------
+  // Advance question / section tracking
+  // ------------------------------------------------------------------
+
+  const advanceQuestion = useCallback(() => {
+    const structure = examStructureRef.current;
+    if (examCompleteRef.current || structure.length === 0) return;
+
+    const newCount = questionsAskedInSectionRef.current + 1;
+    const section = structure[currentSectionIndexRef.current];
+
+    if (newCount >= section.questionCount) {
+      const nextIndex = currentSectionIndexRef.current + 1;
+      if (nextIndex >= structure.length) {
+        examCompleteRef.current = true;
+        setExamComplete(true);
+        questionsAskedInSectionRef.current = newCount;
+        setQuestionsAskedInSection(newCount);
+      } else {
+        currentSectionIndexRef.current = nextIndex;
+        questionsAskedInSectionRef.current = 0;
+        setCurrentSectionIndex(nextIndex);
+        setQuestionsAskedInSection(0);
+      }
+    } else {
+      questionsAskedInSectionRef.current = newCount;
+      setQuestionsAskedInSection(newCount);
+    }
+  }, []);
+
+  // ------------------------------------------------------------------
   // Process user speech
   // ------------------------------------------------------------------
 
@@ -213,6 +273,14 @@ export function useVoiceSession(): UseVoiceSessionReturn {
             ticketType: ticketTypeRef.current,
             currentTopic: currentTopicRef.current,
             mode: aiModeRef.current,
+            sectionName: examStructureRef.current[currentSectionIndexRef.current]?.name || '',
+            sectionQuestionNumber: questionsAskedInSectionRef.current + 1,
+            sectionQuestionTotal: examStructureRef.current[currentSectionIndexRef.current]?.questionCount || 0,
+            isExamComplete: examCompleteRef.current,
+            isDrill: isDrillRef.current,
+            drillTopic: drillTopicRef.current,
+            isBridge: isBridgeRef.current,
+            firstName: firstNameRef.current,
           }),
         });
 
@@ -235,11 +303,15 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         setState('speaking');
         await fetchAndPlayAudio(fullText, log, currentAudioRef);
         log('TTS playback complete');
+        advanceQuestion();
 
-        if (isSessionActiveRef.current && !isPausedRef.current) {
+        if (isSessionActiveRef.current && !isPausedRef.current && !isMutedRef.current) {
           setState('listening');
           speechRecognition.startListening();
           log('mic reopened, listening');
+        } else if (isMutedRef.current) {
+          setState('idle');
+          log('mic muted, waiting for unmute');
         }
       } catch (err) {
         const errorMsg = err instanceof Error ? err.message : 'Unknown error';
@@ -252,9 +324,11 @@ export function useVoiceSession(): UseVoiceSessionReturn {
           timestamp: Date.now(),
         }]);
 
-        if (isSessionActiveRef.current && !isPausedRef.current) {
+        if (isSessionActiveRef.current && !isPausedRef.current && !isMutedRef.current) {
           setState('listening');
           speechRecognition.startListening();
+        } else if (isMutedRef.current) {
+          setState('idle');
         }
       }
     };
@@ -279,24 +353,58 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   // ------------------------------------------------------------------
 
   const startSession = useCallback(
-    async (ticketType: string, firstName?: string, totalSessions?: number) => {
+    async (ticketType: string, firstName?: string, totalSessions?: number, options?: StartSessionOptions) => {
       const t0 = Date.now();
       const log = (msg: string) => console.log(`[Voice:greeting] +${Date.now() - t0}ms ${msg}`);
 
       messagesRef.current = [];
       ticketTypeRef.current = ticketType;
-      currentTopicRef.current = null;
+      currentTopicRef.current = options?.drillTopic || null;
       isSessionActiveRef.current = true;
       isPausedRef.current = false;
+      isDrillRef.current = !!options?.drillTopic;
+      drillTopicRef.current = options?.drillTopic || null;
+      isBridgeRef.current = !!options?.bridge;
+      firstNameRef.current = firstName || '';
+
+      if (options?.drillTopic) {
+        examStructureRef.current = [{
+          id: options.drillTopic,
+          name: options.drillTopicName || options.drillTopic,
+          questionCount: 999,
+          topics: [options.drillTopic],
+        }];
+      } else {
+        examStructureRef.current = getStructureForTicket(ticketType);
+      }
+
+      currentSectionIndexRef.current = 0;
+      questionsAskedInSectionRef.current = 0;
+      examCompleteRef.current = false;
+      setCurrentSectionIndex(0);
+      setQuestionsAskedInSection(0);
+      setExamComplete(false);
       setTranscript([]);
       setLastError(null);
       setState('speaking');
 
-      const isReturning = (totalSessions || 0) > 0;
       const name = firstName || 'there';
-      const greetingText = isReturning
-        ? `Welcome back ${name}. Want to pick up where we left off, or is there a topic you want to focus on today?`
-        : `Hi ${name}, welcome to Echo. Shall I fire some questions at you to find your weak spots, or is there a specific topic you want to work on?`;
+      const isReturning = (totalSessions || 0) > 0;
+      let greetingText: string;
+
+      if (options?.bridge && options?.drillTopic) {
+        const topicDisplay = options.drillTopicName || options.drillTopic;
+        greetingText = `Right ${name}, let's rattle through some ${topicDisplay}. Quick fire, ten minutes. Ready when you are.`;
+      } else if (options?.bridge) {
+        greetingText = `Step onto the bridge, ${name}. What do you want to chat about?`;
+      } else if (options?.drillTopic) {
+        const topicDisplay = options.drillTopicName || options.drillTopic;
+        greetingText = `Right, let's drill ${topicDisplay}. I'll fire questions at you for the next ten minutes. Ready when you are.`;
+      } else {
+        greetingText = isReturning
+          ? `Welcome back ${name}. Want to pick up where we left off, or is there a topic you want to focus on today?`
+          : `Hi ${name}, welcome to Echo. Shall I fire some questions at you to find your weak spots, or is there a specific topic you want to work on?`;
+      }
 
       setTranscript([{ speaker: 'examiner', text: greetingText, timestamp: Date.now() }]);
       messagesRef.current = [{ role: 'assistant', content: greetingText }];
@@ -308,6 +416,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
         log('greeting playback complete');
       } catch (err) {
         log('TTS greeting failed: ' + err + ', trying static MP3');
+        // TODO: re-record greeting-first.mp3 and greeting-returning.mp3 to use Echo persona consistently.
         try {
           const audioUrl = isReturning ? '/audio/greeting-returning.mp3' : '/audio/greeting-first.mp3';
           const audio = new Audio(audioUrl);
@@ -339,6 +448,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   const pauseSession = useCallback(() => {
     console.log('[Voice] pauseSession: mic fully stopped');
     isPausedRef.current = true;
+    setIsPaused(true);
     speechRecognition.disableAutoRestart();
     speechRecognition.stopListening();
     stopMicMeter();
@@ -359,6 +469,7 @@ export function useVoiceSession(): UseVoiceSessionReturn {
       return;
     }
     isPausedRef.current = false;
+    setIsPaused(false);
     speechRecognition.enableAutoRestart();
     setTimeout(() => {
       if (isSessionActiveRef.current && !isPausedRef.current) {
@@ -377,6 +488,13 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   const endSession = useCallback(() => {
     isSessionActiveRef.current = false;
     isPausedRef.current = false;
+    setIsPaused(false);
+    setIsMuted(false);
+    isMutedRef.current = false;
+    isDrillRef.current = false;
+    drillTopicRef.current = null;
+    isBridgeRef.current = false;
+    firstNameRef.current = '';
     speechRecognition.stopListening();
     stopMicMeter();
     if (currentAudioRef.current) {
@@ -398,14 +516,47 @@ export function useVoiceSession(): UseVoiceSessionReturn {
   }, []);
 
   const toggleMic = useCallback(() => {
-    if (stateRef.current === 'listening') {
+    const next = !isMutedRef.current;
+    setIsMuted(next);
+    isMutedRef.current = next;
+    if (next) {
+      // Going to muted
       speechRecognition.stopListening();
       stopMicMeter();
-    } else if (stateRef.current === 'idle' && isSessionActiveRef.current && !isPausedRef.current) {
-      setState('listening');
-      speechRecognition.startListening();
+      if (stateRef.current === 'listening') setState('idle');
+    } else {
+      // Unmuting
+      if (isSessionActiveRef.current && !isPausedRef.current && stateRef.current !== 'speaking' && stateRef.current !== 'processing') {
+        setState('listening');
+        startMicMeter();
+        speechRecognition.startListening();
+      }
     }
-  }, [speechRecognition, stopMicMeter]);
+  }, [speechRecognition, startMicMeter, stopMicMeter]);
+
+  const interrupt = useCallback(() => {
+    if (stateRef.current !== 'speaking') return;
+    console.log('[Voice] interrupt called');
+    if (currentAudioRef.current) {
+      currentAudioRef.current.pause();
+      currentAudioRef.current = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    if (isSessionActiveRef.current && !isPausedRef.current && !isMutedRef.current) {
+      setState('listening');
+      startMicMeter();
+      speechRecognition.startListening();
+    } else {
+      setState('idle');
+    }
+  }, [speechRecognition, startMicMeter]);
+
+  const injectUserMessage = useCallback((text: string) => {
+    if (!text.trim() || !isSessionActiveRef.current || isPausedRef.current) return;
+    processUserSpeechRef.current(text);
+  }, []);
 
   useEffect(() => {
     return () => { isSessionActiveRef.current = false; stopMicMeter(); };
@@ -422,9 +573,16 @@ export function useVoiceSession(): UseVoiceSessionReturn {
     setTicketType,
     setAiMode,
     toggleMic,
+    interrupt,
+    injectUserMessage,
+    isMuted,
+    isPaused,
     analyserNode: null,
     micLevel,
     browserSupported: speechRecognition.browserSupported,
     lastError,
+    currentSectionIndex,
+    questionsAskedInSection,
+    examComplete,
   };
 }

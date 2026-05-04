@@ -2,56 +2,48 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { UserButton, useUser } from "@clerk/nextjs";
-import { isBetaUser } from "@/lib/beta-access";
+import { Settings } from "lucide-react";
+import { useState } from "react";
+import { SettingsDrawer } from "@/components/layout/SettingsDrawer";
+
+const HIDE_HEADER_ROUTES = [
+  "/",
+  "/home",
+  "/examination",
+  "/bridge",
+  "/drill",
+  "/onboarding",
+  "/sign-in",
+  "/sign-up",
+  "/trainer",
+];
 
 export function Header() {
   const pathname = usePathname();
-  const { user } = useUser();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
-  // Hide on auth and onboarding pages
-  if (
-    pathname.startsWith("/sign-in") ||
-    pathname.startsWith("/sign-up") ||
-    pathname === "/onboarding"
-  ) {
-    return null;
-  }
+  // Hide on most routes — only show on /logbook and /report
+  const shouldHide = HIDE_HEADER_ROUTES.some(
+    (route) => pathname === route || pathname.startsWith(route + "/")
+  );
 
-  const email = user?.emailAddresses?.[0]?.emailAddress;
-  const showTrainer = isBetaUser(email);
+  if (shouldHide) return null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#E5E7EB] bg-[#FFFFFF]">
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between px-6">
-        <Link href="/" className="flex items-center">
-          <span className="text-xl font-bold text-[#111111]">Echo</span>
+    <>
+      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-rule bg-paper px-6">
+        <Link href="/home" className="font-serif text-lg text-ink" style={{ fontWeight: 400 }}>
+          Echo
         </Link>
-
-        <nav className="flex items-center gap-6">
-          <Link
-            href="/dashboard"
-            className="text-sm font-medium text-[#6B7280] transition-colors hover:text-[#111111]"
-          >
-            Dashboard
-          </Link>
-          {showTrainer && (
-            <Link
-              href="/trainer"
-              className="text-sm font-medium text-[#6B7280] transition-colors hover:text-[#111111]"
-            >
-              Trainer
-            </Link>
-          )}
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: "h-8 w-8",
-              },
-            }}
-          />
-        </nav>
-      </div>
-    </header>
+        <button
+          onClick={() => setDrawerOpen(true)}
+          className="text-ink-muted transition-colors hover:text-ink"
+          aria-label="Settings"
+        >
+          <Settings className="h-[18px] w-[18px]" />
+        </button>
+      </header>
+      <SettingsDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+    </>
   );
 }
